@@ -1,14 +1,13 @@
-import type { RealtimeChannel } from '@supabase/supabase-js';
 import type { GameState } from '../types';
 import type { OnlineAction } from '../game/onlineReducer';
-import { getSupabase } from './supabase';
+import { GAME_SERVER } from './config';
 
 export type RoomStatus = 'connecting' | 'connected' | 'error' | 'closed';
 
 type Me = { id: string; name: string; isHost: boolean };
 
 type Handlers = {
-  onState?: (state: GameState) => void; // clients receive snapshots
+  onState?: (state: GameState) => void; // clients receive snapshots from the host
   onHello?: (id: string, name: string) => void; // host: a client announced itself
   onAction?: (id: string, action: OnlineAction) => void; // host: a client action
   onLeave?: (id: string) => void; // host: a device disconnected
@@ -22,55 +21,59 @@ export type Room = {
   leave: () => void;
 };
 
-const channelName = (code: string) => `aov-${code.toUpperCase()}`;
-
+// Connects to the WebSocket relay (./server) for a given room code.
+// The server just forwards every message to the OTHER members of the room.
 export function joinRoom(code: string, me: Me, handlers: Handlers): Room {
-  const supabase = getSupabase();
-  const channel: RealtimeChannel = supabase.channel(channelName(code), {
-    config: { broadcast: { self: false }, presence: { key: me.id } },
-  });
+  const qs =
+    `room=${encodeURIComponent(code.toUpperCase())}` +
+    `&id=${encodeURIComponent(me.id)}` +
+    `&name=${encodeURIComponent(me.name)}`;
+  const ws = new WebSocket(`${GAME_SERVER}?${qs}`);
 
-  channel.on('broadcast', { event: 'state' }, ({ payload }) => {
-    handlers.onState?.(payload.state as GameState);
-  });
-  channel.on('broadcast', { event: 'hello' }, ({ payload }) => {
-    handlers.onHello?.(payload.id as string, payload.name as string);
-  });
-  channel.on('broadcast', { event: 'action' }, ({ payload }) => {
-    handlers.onAction?.(payload.id as string, payload.action as OnlineAction);
-  });
-  channel.on('presence', { event: 'leave' }, ({ leftPresences }) => {
-    for (const p of leftPresences as Array<{ id?: string }>) {
-      if (p.id) handlers.onLeave?.(p.id);
+  const send = (event: string, payload: unknown) => {
+    if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ event, payload }));
+  };
+  const sendHello = () => send('hello', { id: me.id, name: me.name });
+
+  ws.onopen = () => {
+    handlers.onStatus?.('connected');
+    if (!me.isHost) sendHello();
+  };
+  ws.onerror = () => handlers.onStatus?.('error');
+  ws.onclose = () => handlers.onStatus?.('closed');
+  ws.onmessage = (ev) => {
+    let msg: { event?: string; payload?: any };
+    try {
+      msg = JSON.parse(typeof ev.data === 'string' ? ev.data : '');
+    } catch {
+      return;
     }
-  });
-
-  const sendHello = () => {
-    channel.send({ type: 'broadcast', event: 'hello', payload: { id: me.id, name: me.name } });
+    switch (msg.event) {
+      case 'state':
+        handlers.onState?.(msg.payload.state as GameState);
+        break;
+      case 'hello':
+        handlers.onHello?.(msg.payload.id, msg.payload.name);
+        break;
+      case 'action':
+        handlers.onAction?.(msg.payload.id, msg.payload.action as OnlineAction);
+        break;
+      case 'leave':
+        handlers.onLeave?.(msg.payload.id);
+        break;
+    }
   };
 
-  channel.subscribe((status) => {
-    if (status === 'SUBSCRIBED') {
-      handlers.onStatus?.('connected');
-      channel.track({ id: me.id, name: me.name });
-      if (!me.isHost) sendHello();
-    } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-      handlers.onStatus?.('error');
-    } else if (status === 'CLOSED') {
-      handlers.onStatus?.('closed');
-    }
-  });
-
   return {
-    broadcastState: (state) => {
-      channel.send({ type: 'broadcast', event: 'state', payload: { state } });
-    },
+    broadcastState: (state) => send('state', { state }),
     sendHello,
-    sendAction: (action) => {
-      channel.send({ type: 'broadcast', event: 'action', payload: { id: me.id, action } });
-    },
+    sendAction: (action) => send('action', { id: me.id, action }),
     leave: () => {
-      supabase.removeChannel(channel);
+      try {
+        ws.close();
+      } catch {
+        // ignore
+      }
     },
   };
 }

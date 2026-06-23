@@ -15,19 +15,16 @@ export default function OnlineEntryScreen({ onBack }: { onBack: () => void }) {
     return (
       <Screen scroll center>
         <Text style={styles.emoji}>🔌</Text>
-        <Text style={styles.h1}>Mode en ligne à configurer</Text>
+        <Text style={styles.h1}>Serveur de jeu introuvable</Text>
         <Text style={styles.help}>
-          Le multijoueur utilise Supabase (gratuit). Il faut coller tes clés une seule fois :
+          L'adresse du serveur n'a pas pu être détectée automatiquement (mode tunnel ou web ?).
         </Text>
         <View style={styles.steps}>
-          <Text style={styles.step}>1. Crée un projet sur supabase.com</Text>
-          <Text style={styles.step}>2. Settings → Data API → copie l'URL + la clé « anon »</Text>
+          <Text style={styles.step}>1. Lance le serveur sur ton PC : <Text style={styles.code}>docker compose up -d --build</Text></Text>
+          <Text style={styles.step}>2. Mets les téléphones sur le MÊME Wi-Fi que le PC, puis lance <Text style={styles.code}>npx expo start</Text> (mode LAN).</Text>
           <Text style={styles.step}>
-            3. Colle-les dans <Text style={styles.code}>src/net/config.ts</Text> (ou via les variables{' '}
-            <Text style={styles.code}>EXPO_PUBLIC_SUPABASE_URL</Text> /{' '}
-            <Text style={styles.code}>EXPO_PUBLIC_SUPABASE_ANON_KEY</Text>)
+            3. Sinon force l'adresse via <Text style={styles.code}>EXPO_PUBLIC_GAME_SERVER=ws://IP_DU_PC:8787</Text>
           </Text>
-          <Text style={styles.step}>4. Relance l'app — le mode en ligne s'activera.</Text>
         </View>
         <View style={{ height: spacing.xl }} />
         <Button label="‹ Retour" variant="outline" onPress={onBack} />

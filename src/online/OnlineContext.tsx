@@ -2,7 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useRef, useSt
 import type { GameState } from '../types';
 import { initialOnlineState, onlineReducer, type OnlineAction } from '../game/onlineReducer';
 import { joinRoom, type Room, type RoomStatus } from '../net/room';
-import { supabaseConfigured } from '../net/config';
+import { serverConfigured } from '../net/config';
 
 type Session = { code: string; isHost: boolean; myId: string; myName: string };
 
@@ -134,7 +134,7 @@ export function OnlineProvider({ onExit, children }: { onExit: () => void; child
   useEffect(() => () => roomRef.current?.leave(), []);
 
   const value: OnlineValue = {
-    configured: supabaseConfigured,
+    configured: serverConfigured,
     session,
     state,
     status,

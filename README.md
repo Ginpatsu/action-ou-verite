@@ -24,18 +24,39 @@ npx expo start            # puis scanner le QR code avec Expo Go
 
 ## Mode en ligne (multijoueur, plusieurs téléphones)
 
-Le multijoueur utilise **Supabase Realtime** (broadcast + presence) — gratuit, aucune table à créer.
+Le multijoueur passe par un **petit serveur WebSocket** que tu héberges toi-même
+en **Docker** sur ton PC (dossier [`server/`](server/)). C'est un simple relais :
+l'hôte (le créateur de la partie) fait autorité, le serveur transmet juste les
+messages aux autres joueurs de la room.
 
-1. Crée un projet sur [supabase.com](https://supabase.com).
-2. **Settings → Data API** : copie *Project URL* et la clé *anon / public*.
-3. Renseigne-les, au choix :
-   - dans `src/net/config.ts`, ou
-   - via les variables d'env `EXPO_PUBLIC_SUPABASE_URL` et `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
-4. Relance `npx expo start`. Le bouton **Partie en ligne** devient actif.
+**1. Lancer le serveur (une fois) :**
 
-Ensuite : un joueur **crée une partie** (il obtient un **code à 4 lettres**), les autres **rejoignent** avec ce code. Le créateur est le **chef/hôte** (autorité du jeu). Chaque téléphone n'affiche que ce qui le concerne (la victime choisit, l'auteur écrit, etc.). À la fin, la sentence se joue **sur le téléphone du perdant** (c'est lui qui détecte ses réseaux installés).
+```bash
+docker compose up -d --build      # serveur sur le port 8787
+# vérifie : ouvre http://localhost:8787  → "serveur de jeu OK"
+```
 
-> Tant que Supabase n'est pas configuré, le mode en ligne affiche les instructions ; le mode **local** marche sans rien configurer.
+**2. Lancer l'app et tester à plusieurs :**
+
+```bash
+npx expo start                    # mode LAN (par défaut)
+```
+
+- Chaque joueur installe **Expo Go** et **scanne le même QR code**.
+- ⚠️ **Tout le monde sur le MÊME Wi-Fi que le PC.** L'app détecte alors l'IP du
+  PC automatiquement (la même que Metro) et parle au serveur sur `:8787` —
+  **aucune config**.
+- Un joueur **crée une partie** → **code à 4 lettres** ; les autres **rejoignent**
+  avec ce code. Chaque téléphone n'affiche que ce qui le concerne. La sentence
+  finale se joue **sur le téléphone du perdant**.
+
+> Réseaux différents / 4G : utilise `npx expo start --tunnel` **et** expose le
+> port 8787 (puis `EXPO_PUBLIC_GAME_SERVER=ws://TON_IP_PUBLIQUE:8787`). Pour de
+> simples tests, reste en Wi-Fi commun.
+>
+> Le mode **local** marche sans rien lancer.
+
+Test rapide du relais sans Docker : `cd server && npm install && node smoke.js`.
 
 ## Détection des réseaux installés
 
@@ -63,9 +84,10 @@ src/
     onlineReducer.ts            # reducer EN LIGNE (host-authoritative)
     logic.ts                    # tirages + calcul gagnant/perdant (partagé)
   net/
-    config.ts                   # clés Supabase
-    supabase.ts                 # client Supabase (lazy)
-    room.ts                     # canal Realtime (broadcast + presence)
+    config.ts                   # URL du serveur (auto-détectée depuis Metro)
+    room.ts                     # connexion WebSocket à la room
+server/                         # serveur de jeu (relais WebSocket, Docker)
+  server.js, Dockerfile         # + docker-compose.yml à la racine
   online/
     OnlineContext.tsx           # état réseau + autorité de l'hôte
     OnlineApp.tsx               # routeur des écrans en ligne

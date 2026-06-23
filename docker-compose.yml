@@ -1,0 +1,10 @@
+# Serveur de jeu en ligne (relais WebSocket) pour Action ou Vérité.
+# Lancer :  docker compose up -d --build
+# Arrêter : docker compose down
+# Vérifier : ouvrir http://localhost:8787 (doit afficher "serveur de jeu OK")
+services:
+  game:
+    build: ./server
+    ports:
+      - "8787:8787"
+    restart: unless-stopped

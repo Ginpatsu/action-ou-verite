@@ -1,16 +1,27 @@
-// ── Configuration Supabase (pour le mode EN LIGNE) ───────────────────────────
-//
-// 1. Crée un projet gratuit sur https://supabase.com (Project → New).
-// 2. Settings → Data API : copie "Project URL" et la clé "anon / public".
-// 3. Colle-les ci-dessous. (La clé "anon" est publique, pas de secret ici.)
-//
-// Le mode en ligne utilise uniquement Supabase Realtime (broadcast + presence),
-// aucune table ni configuration de base de données n'est nécessaire.
-//
-// Astuce : tu peux aussi les définir via la variable d'env EXPO_PUBLIC_SUPABASE_URL
-// / EXPO_PUBLIC_SUPABASE_ANON_KEY (elles ont la priorité si présentes).
+import Constants from 'expo-constants';
 
-export const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
-export const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
+// ── Serveur de jeu (mode EN LIGNE) ───────────────────────────────────────────
+//
+// Le multijoueur parle à un petit serveur WebSocket (dossier ./server) que tu
+// lances en Docker sur ton PC :  docker compose up -d --build
+//
+// ZÉRO CONFIG en LAN : l'app détecte l'IP de ton PC (la même que celle du QR
+// code Metro) et s'y connecte sur le port 8787. Il suffit que les téléphones
+// soient sur le MÊME Wi-Fi que le PC.
+//
+// Override possible : EXPO_PUBLIC_GAME_SERVER=ws://192.168.1.20:8787
+// (utile en mode --tunnel, ou pour pointer vers un vrai serveur plus tard).
 
-export const supabaseConfigured = SUPABASE_URL.length > 0 && SUPABASE_ANON_KEY.length > 0;
+const GAME_PORT = 8787;
+
+function deriveFromMetro(): string {
+  // hostUri ressemble à "192.168.1.20:8081" quand on lance en LAN.
+  const fromExpo = Constants.expoConfig?.hostUri;
+  const fromGo = (Constants as unknown as { expoGoConfig?: { hostUri?: string } }).expoGoConfig?.hostUri;
+  const host = (fromExpo || fromGo || '').split(':')[0];
+  if (host && /^\d+\.\d+\.\d+\.\d+$/.test(host)) return `ws://${host}:${GAME_PORT}`;
+  return '';
+}
+
+export const GAME_SERVER = process.env.EXPO_PUBLIC_GAME_SERVER || deriveFromMetro();
+export const serverConfigured = GAME_SERVER.length > 0;
