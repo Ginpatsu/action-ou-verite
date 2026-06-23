@@ -58,6 +58,35 @@ npx expo start                    # mode LAN (par défaut)
 
 Test rapide du relais sans Docker : `cd server && npm install && node smoke.js`.
 
+## Base de données (Postgres)
+
+`docker compose up` démarre aussi un **Postgres** (service `db`) auquel le serveur
+de jeu se connecte automatiquement (`DATABASE_URL`). Deux usages :
+
+- **Comptes joueurs — persistants** (table `accounts`) : chaque téléphone a un
+  identifiant stable (gardé via AsyncStorage), et ses stats cumulées sont mises à
+  jour à chaque fin de partie (parties jouées / gagnées / perdues / malus total).
+- **Parties — temporaires** (tables `games` + `game_players`) : chaque partie
+  terminée est enregistrée puis **purgée automatiquement après 3 jours**
+  (`expires_at` + nettoyage horaire).
+
+Le serveur écrit en base **tout seul** : il observe les messages relayés et
+enregistre la partie quand elle atteint la phase finale. La persistance est
+**optionnelle** — sans `DATABASE_URL`, le serveur reste un simple relais.
+
+Inspecter la base :
+
+```bash
+docker compose exec db psql -U aov -d aov -c "select * from accounts;"
+docker compose exec db psql -U aov -d aov -c "select code, winner_pseudo, loser_pseudo, expires_at from games;"
+```
+
+Schéma : [`server/db/init.sql`](server/db/init.sql). Test d'enregistrement : `cd server && node sim-finale.js`.
+
+> ⚠️ Identifiants Postgres du `docker-compose.yml` = **dev local** (BDD sur
+> `localhost:5432`, non exposée à internet). À changer pour un vrai serveur.
+> `docker compose down -v` efface aussi les données.
+
 ## Détection des réseaux installés
 
 - **Expo Go** : la détection est limitée (les permissions natives ne s'appliquent pas) → l'app affiche les 6 réseaux et tente quand même d'ouvrir celui choisi.
@@ -86,8 +115,11 @@ src/
   net/
     config.ts                   # URL du serveur (auto-détectée depuis Metro)
     room.ts                     # connexion WebSocket à la room
-server/                         # serveur de jeu (relais WebSocket, Docker)
-  server.js, Dockerfile         # + docker-compose.yml à la racine
+  utils/identity.ts             # id de compte persistant + pseudo (AsyncStorage)
+server/                         # serveur de jeu (Docker) : relais WebSocket + BDD
+  server.js                     # relais + observation pour la persistance
+  db.js, db/init.sql            # accès Postgres + schéma (accounts, games)
+  Dockerfile                    # + docker-compose.yml (Postgres + serveur) à la racine
   online/
     OnlineContext.tsx           # état réseau + autorité de l'hôte
     OnlineApp.tsx               # routeur des écrans en ligne

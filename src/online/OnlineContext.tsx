@@ -3,6 +3,7 @@ import type { GameState } from '../types';
 import { initialOnlineState, onlineReducer, type OnlineAction } from '../game/onlineReducer';
 import { joinRoom, type Room, type RoomStatus } from '../net/room';
 import { serverConfigured } from '../net/config';
+import { getAccountId, savePseudo } from '../utils/identity';
 
 type Session = { code: string; isHost: boolean; myId: string; myName: string };
 
@@ -22,7 +23,6 @@ type OnlineValue = {
 
 const Ctx = createContext<OnlineValue | null>(null);
 
-const randId = () => `p_${Math.random().toString(36).slice(2, 10)}`;
 function makeCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   return Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
@@ -36,6 +36,14 @@ export function OnlineProvider({ onExit, children }: { onExit: () => void; child
   const roomRef = useRef<Room | null>(null);
   const stateRef = useRef<GameState | null>(null);
   const isHostRef = useRef(false);
+  const accountIdRef = useRef<string | null>(null);
+
+  // Charge l'identifiant de compte persistant au montage.
+  useEffect(() => {
+    getAccountId().then((id) => {
+      accountIdRef.current = id;
+    });
+  }, []);
 
   const setAuthoritative = (next: GameState) => {
     stateRef.current = next;
@@ -49,10 +57,11 @@ export function OnlineProvider({ onExit, children }: { onExit: () => void; child
   }, []);
 
   const createRoom = useCallback(
-    (name: string) => {
-      const myId = randId();
+    async (name: string) => {
+      const myId = accountIdRef.current ?? (await getAccountId());
       const code = makeCode();
       const safeName = name.trim() || 'Chef';
+      savePseudo(safeName);
       const initial = initialOnlineState({ id: myId, name: safeName });
       isHostRef.current = true;
       stateRef.current = initial;
@@ -77,9 +86,10 @@ export function OnlineProvider({ onExit, children }: { onExit: () => void; child
     [hostApply]
   );
 
-  const join = useCallback((code: string, name: string) => {
-    const myId = randId();
+  const join = useCallback(async (code: string, name: string) => {
+    const myId = accountIdRef.current ?? (await getAccountId());
     const safeName = name.trim() || 'Joueur';
+    savePseudo(safeName);
     isHostRef.current = false;
     stateRef.current = null;
     setState(null);

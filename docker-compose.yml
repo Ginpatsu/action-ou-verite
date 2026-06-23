@@ -1,10 +1,40 @@
-# Serveur de jeu en ligne (relais WebSocket) pour Action ou Vérité.
+# Stack en ligne d'Action ou Vérité : Postgres + serveur de jeu (relais WebSocket).
 # Lancer :  docker compose up -d --build
-# Arrêter : docker compose down
-# Vérifier : ouvrir http://localhost:8787 (doit afficher "serveur de jeu OK")
+# Arrêter : docker compose down            (ajouter -v pour effacer aussi la BDD)
+# Vérifier : http://localhost:8787  → "serveur de jeu OK"
+#
+# ⚠️ Identifiants Postgres ci-dessous = DEV LOCAL uniquement (BDD non exposée à
+# internet, juste localhost:5432). À changer pour un vrai serveur.
 services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: aov
+      POSTGRES_PASSWORD: aovpass
+      POSTGRES_DB: aov
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./server/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aov -d aov"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
   game:
     build: ./server
+    environment:
+      PORT: 8787
+      DATABASE_URL: postgres://aov:aovpass@db:5432/aov
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - "8787:8787"
     restart: unless-stopped
+
+volumes:
+  pgdata:

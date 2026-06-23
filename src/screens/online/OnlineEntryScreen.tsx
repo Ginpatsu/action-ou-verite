@@ -1,15 +1,20 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import AppLogo from '../../components/AppLogo';
 import Button from '../../components/Button';
 import Screen from '../../components/Screen';
 import { useOnline } from '../../online/OnlineContext';
+import { getSavedPseudo } from '../../utils/identity';
 import { colors, font, radius, spacing } from '../../theme';
 
 export default function OnlineEntryScreen({ onBack }: { onBack: () => void }) {
   const { configured, createRoom, join } = useOnline();
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
+
+  useEffect(() => {
+    getSavedPseudo().then((saved) => saved && setName(saved));
+  }, []);
 
   if (!configured) {
     return (

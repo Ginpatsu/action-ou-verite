@@ -4,6 +4,7 @@
 // signaler les déconnexions. Léger, sans état persistant.
 const http = require('http');
 const { WebSocketServer } = require('ws');
+const db = require('./db');
 
 const PORT = process.env.PORT || 8787;
 
@@ -17,6 +18,28 @@ const wss = new WebSocketServer({ server });
 
 /** @type {Map<string, Set<import('ws').WebSocket>>} */
 const rooms = new Map();
+/** Dernière phase vue par room, pour n'enregistrer une partie qu'une fois à la finale. */
+const roomPhase = new Map();
+
+// Observe les messages relayés pour la persistance (best-effort, non bloquant).
+function observeForDb(code, text) {
+  let msg;
+  try {
+    msg = JSON.parse(text);
+  } catch {
+    return;
+  }
+  if (msg.event === 'hello' && msg.payload) {
+    db.upsertAccount(msg.payload.id, msg.payload.name);
+  } else if (msg.event === 'state' && msg.payload && msg.payload.state) {
+    const state = msg.payload.state;
+    const prev = roomPhase.get(code);
+    if (state.phase === 'finale' && prev !== 'finale') {
+      db.recordGame(code, state);
+    }
+    roomPhase.set(code, state.phase);
+  }
+}
 
 wss.on('connection', (ws, req) => {
   const url = new URL(req.url, 'http://localhost');
@@ -40,6 +63,7 @@ wss.on('connection', (ws, req) => {
     for (const peer of room) {
       if (peer !== ws && peer.readyState === peer.OPEN) peer.send(text);
     }
+    observeForDb(code, text);
   });
 
   ws.on('close', () => {
@@ -50,9 +74,13 @@ wss.on('connection', (ws, req) => {
     for (const peer of room) {
       if (peer.readyState === peer.OPEN) peer.send(bye);
     }
-    if (room.size === 0) rooms.delete(code);
+    if (room.size === 0) {
+      rooms.delete(code);
+      roomPhase.delete(code);
+    }
     console.log(`[-] ${id} a quitté ${code}`);
   });
 });
 
+db.init();
 server.listen(PORT, () => console.log(`Serveur de jeu sur le port ${PORT}`));
