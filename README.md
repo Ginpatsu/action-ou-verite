@@ -29,7 +29,9 @@ npx expo start         # puis scanner le QR code avec l'app Expo Go
   npx expo run:android        # ou: eas build --profile development
   ```
 
-> ⚠️ **Node** : le projet (RN 0.85 / SDK 56) recommande Node **≥ 22.13**. Tu es en 22.12 — ça build, mais mieux vaut passer en 22.13+ (ou Node 24 LTS) pour éviter des surprises avec Metro.
+> ℹ️ **Version Expo** : le projet est volontairement épinglé sur **SDK 54** (RN 0.81) pour rester compatible avec l'app **Expo Go** du Play/App Store (qui supporte le SDK 54). Ne pas remonter en SDK 55/56 tant qu'Expo Go n'a pas suivi, sinon Expo Go affiche « Project is incompatible ».
+>
+> Un fichier `.npmrc` active `legacy-peer-deps=true` (l'écosystème RN/Expo a des conflits de peer deps bénins) — garde-le pour que `npm install` / `npx expo install` passent sans flag.
 
 ## Structure
 
