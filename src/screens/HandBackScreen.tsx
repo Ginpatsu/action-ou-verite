@@ -12,9 +12,8 @@ export default function HandBackScreen() {
   return (
     <Screen center>
       <Text style={styles.emoji}>📲</Text>
-      <Text style={styles.h1}>Épreuve scellée.</Text>
+      <Text style={styles.h1}>Épreuve prête.</Text>
       <Text style={styles.sub}>Rends le téléphone à {target?.name}.</Text>
-      <Text style={styles.note}>L'identité de l'auteur reste secrète. 🤐</Text>
       <View style={{ height: spacing.xl }} />
       <Button label={`C'est bon, à ${target?.name} →`} onPress={() => dispatch({ type: 'HAND_BACK_DONE' })} />
     </Screen>

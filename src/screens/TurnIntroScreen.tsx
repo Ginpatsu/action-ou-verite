@@ -4,17 +4,19 @@ import Button from '../components/Button';
 import Scoreboard from '../components/Scoreboard';
 import Screen from '../components/Screen';
 import { useGame } from '../game/GameContext';
+import { useExit } from '../components/ExitContext';
 import { colors, font, spacing } from '../theme';
 
 export default function TurnIntroScreen() {
   const { state, dispatch } = useGame();
+  const exit = useExit();
   return (
     <Screen>
       <View style={styles.top}>
         <Text style={styles.manche}>
           MANCHE {state.currentManche} / {state.totalManches}
         </Text>
-        <Pressable onPress={() => dispatch({ type: 'GO_HOME' })} hitSlop={12}>
+        <Pressable onPress={exit} hitSlop={12}>
           <Text style={styles.quit}>Abandonner</Text>
         </Pressable>
       </View>

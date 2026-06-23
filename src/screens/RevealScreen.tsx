@@ -8,6 +8,7 @@ import { colors, font, radius, spacing } from '../theme';
 export default function RevealScreen() {
   const { state, dispatch, playerById } = useGame();
   const target = playerById(state.turn?.targetId);
+  const writer = playerById(state.turn?.writerId);
   const isAction = state.turn?.type === 'action';
   const accent = isAction ? colors.primary : colors.accent;
 
@@ -24,10 +25,10 @@ export default function RevealScreen() {
         <Text style={styles.dare}>{state.turn?.dare}</Text>
       </View>
 
-      <Text style={styles.sub}>À toi de jouer. L'auteur secret jugera si tu assures… ou si tu te dégonfles.</Text>
+      <Text style={styles.sub}>À toi de jouer. {writer?.name} jugera si tu assures… ou si tu te dégonfles.</Text>
 
       <View style={{ height: spacing.lg }} />
-      <Button label="L'auteur secret juge →" variant="outline" onPress={() => dispatch({ type: 'GO_JUDGE_HANDOFF' })} />
+      <Button label={`${writer?.name} juge →`} variant="outline" onPress={() => dispatch({ type: 'GO_JUDGE_HANDOFF' })} />
     </Screen>
   );
 }

@@ -11,7 +11,7 @@ export default function JudgeScreen() {
 
   return (
     <Screen center>
-      <Text style={styles.kicker}>VERDICT DE L'AUTEUR 🔒</Text>
+      <Text style={styles.kicker}>VERDICT ⚖️</Text>
       <Text style={styles.h1}>{target?.name} a assuré ?</Text>
       <Text style={styles.sub}>Si la personne se dégonfle, elle prend un malus 💀</Text>
 

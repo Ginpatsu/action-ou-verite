@@ -5,12 +5,14 @@ import Button from '../components/Button';
 import Screen from '../components/Screen';
 import { SOCIAL_APPS, type SocialApp } from '../data/socialApps';
 import { useGame } from '../game/GameContext';
+import { useExit } from '../components/ExitContext';
 import type { SocialId } from '../types';
 import { detectInstalled, openSocial } from '../utils/social';
 import { colors, font, radius, spacing } from '../theme';
 
 export default function FinaleScreen() {
   const { state, dispatch, playerById } = useGame();
+  const exit = useExit();
   const [installed, setInstalled] = useState<SocialId[] | null>(null);
 
   useEffect(() => {
@@ -100,7 +102,7 @@ export default function FinaleScreen() {
       <View style={{ height: spacing.xl }} />
       <Button label="Rejouer (mêmes joueurs)" variant="primary" onPress={() => dispatch({ type: 'PLAY_AGAIN' })} />
       <View style={{ height: spacing.md }} />
-      <Button label="Retour à l'accueil" variant="outline" onPress={() => dispatch({ type: 'GO_HOME' })} />
+      <Button label="Retour à l'accueil" variant="outline" onPress={exit} />
     </Screen>
   );
 }

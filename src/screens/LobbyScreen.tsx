@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
 import { MAX_MANCHES, MIN_PLAYERS, useGame } from '../game/GameContext';
+import { useExit } from '../components/ExitContext';
 import { colors, font, radius, spacing } from '../theme';
 
 function makeCode() {
@@ -12,6 +13,7 @@ function makeCode() {
 
 export default function LobbyScreen() {
   const { state, dispatch } = useGame();
+  const exit = useExit();
   const [name, setName] = useState('');
   const code = useMemo(makeCode, []);
   const canStart = state.players.length >= MIN_PLAYERS;
@@ -25,7 +27,7 @@ export default function LobbyScreen() {
   return (
     <Screen scroll>
       <View style={styles.headerRow}>
-        <Pressable onPress={() => dispatch({ type: 'GO_HOME' })} hitSlop={12}>
+        <Pressable onPress={exit} hitSlop={12}>
           <Text style={styles.back}>‹ Accueil</Text>
         </Pressable>
         <View style={styles.codePill}>

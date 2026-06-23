@@ -1,9 +1,11 @@
 import { StatusBar } from 'expo-status-bar';
-import React from 'react';
+import React, { useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { ExitProvider } from './src/components/ExitContext';
 import { GameProvider, useGame } from './src/game/GameContext';
+import MenuScreen from './src/screens/MenuScreen';
+import OnlineApp from './src/online/OnlineApp';
 
-import HomeScreen from './src/screens/HomeScreen';
 import LobbyScreen from './src/screens/LobbyScreen';
 import TurnIntroScreen from './src/screens/TurnIntroScreen';
 import PlayerRouletteScreen from './src/screens/PlayerRouletteScreen';
@@ -18,11 +20,11 @@ import JudgeScreen from './src/screens/JudgeScreen';
 import TurnResultScreen from './src/screens/TurnResultScreen';
 import FinaleScreen from './src/screens/FinaleScreen';
 
-function Router() {
+type Mode = 'menu' | 'local' | 'online';
+
+function LocalRouter() {
   const { state } = useGame();
   switch (state.phase) {
-    case 'home':
-      return <HomeScreen />;
     case 'lobby':
       return <LobbyScreen />;
     case 'turnIntro':
@@ -50,17 +52,28 @@ function Router() {
     case 'finale':
       return <FinaleScreen />;
     default:
-      return <HomeScreen />;
+      return <LobbyScreen />;
   }
 }
 
+function LocalApp({ onExit }: { onExit: () => void }) {
+  return (
+    <GameProvider>
+      <ExitProvider onExit={onExit}>
+        <LocalRouter />
+      </ExitProvider>
+    </GameProvider>
+  );
+}
+
 export default function App() {
+  const [mode, setMode] = useState<Mode>('menu');
   return (
     <SafeAreaProvider>
-      <GameProvider>
-        <StatusBar style="light" />
-        <Router />
-      </GameProvider>
+      <StatusBar style="light" />
+      {mode === 'menu' && <MenuScreen onLocal={() => setMode('local')} onOnline={() => setMode('online')} />}
+      {mode === 'local' && <LocalApp onExit={() => setMode('menu')} />}
+      {mode === 'online' && <OnlineApp onExit={() => setMode('menu')} />}
     </SafeAreaProvider>
   );
 }

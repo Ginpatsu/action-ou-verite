@@ -1,65 +1,87 @@
 # Action ou Vérité — Hardcore 🔥
 
 Jeu de soirée **Action ou Vérité** en mode hardcore, fait en **Expo / React Native**.
-Version actuelle : **partie locale, on se passe le téléphone** (pass-the-phone).
+Deux modes : **local** (un seul téléphone, pass-the-phone) et **en ligne** (plusieurs téléphones).
 
 ## Le concept
 
-1. On ajoute tous les joueurs (juste un pseudo) dans le salon. Le 1ᵉʳ joueur est le **chef** 👑 : il règle le nombre de manches et peut **exclure** quelqu'un.
+1. On ajoute les joueurs (juste un pseudo). Le 1ᵉʳ joueur est le **chef** 👑 : il règle le nombre de manches et peut **exclure** quelqu'un.
 2. Chaque manche :
    - Une **roulette** désigne une victime.
    - La victime choisit **Action** ou **Vérité**.
-   - Une **2ᵉ roulette anonyme** désigne un **auteur secret** (personne ne voit qui).
-   - On passe le téléphone discrètement à l'auteur, qui **écrit l'épreuve** (la victime ne doit pas regarder).
-   - La victime fait (ou pas) son épreuve. **L'auteur secret juge** : réussi ✅ ou dégonflé 💀 (**+1 malus**).
-3. À la fin : celui qui a **le plus de malus** est le **perdant**, celui qui en a **le moins** est le **gagnant**.
-   - Le gagnant prend le téléphone du perdant. L'app **détecte les réseaux sociaux installés** (X, Instagram, Facebook, TikTok, Snapchat, Discord), affiche leurs logos, et un tap **ouvre l'appli** : le gagnant écrit ce qu'il veut sur le compte du perdant 😈.
+   - Une **2ᵉ roulette** désigne qui **écrit l'épreuve** (les noms sont affichés directement).
+   - Cette personne écrit l'épreuve, la victime la réalise (ou pas).
+   - L'auteur **juge** : réussi ✅ ou dégonflé 💀 (**+1 malus**).
+3. À la fin : le **plus de malus** = **perdant**, le **moins** = **gagnant**.
+   - Le gagnant prend le téléphone du perdant. L'app **détecte les réseaux installés** (X, Instagram, Facebook, TikTok, Snapchat, Discord), affiche leurs logos, et un tap **ouvre l'appli** : le gagnant écrit ce qu'il veut sur le compte du perdant 😈.
 
 ## Lancer le projet
 
 ```bash
 cd "F:\Applications\actionouvérité"
-npm install            # déjà fait
-npx expo start         # puis scanner le QR code avec l'app Expo Go
+npx expo start            # puis scanner le QR code avec Expo Go
 ```
 
-- **Android / iOS via Expo Go** : tout le jeu marche. ⚠️ *Seule la détection automatique des réseaux installés est limitée dans Expo Go* — dans ce cas l'app affiche les 6 réseaux et tente quand même d'ouvrir l'appli choisie.
-- **Détection fiable des apps installées** : nécessite un **build de développement** (les permissions natives `<queries>` Android et `LSApplicationQueriesSchemes` iOS ne s'appliquent qu'à un vrai build) :
+## Mode en ligne (multijoueur, plusieurs téléphones)
+
+Le multijoueur utilise **Supabase Realtime** (broadcast + presence) — gratuit, aucune table à créer.
+
+1. Crée un projet sur [supabase.com](https://supabase.com).
+2. **Settings → Data API** : copie *Project URL* et la clé *anon / public*.
+3. Renseigne-les, au choix :
+   - dans `src/net/config.ts`, ou
+   - via les variables d'env `EXPO_PUBLIC_SUPABASE_URL` et `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
+4. Relance `npx expo start`. Le bouton **Partie en ligne** devient actif.
+
+Ensuite : un joueur **crée une partie** (il obtient un **code à 4 lettres**), les autres **rejoignent** avec ce code. Le créateur est le **chef/hôte** (autorité du jeu). Chaque téléphone n'affiche que ce qui le concerne (la victime choisit, l'auteur écrit, etc.). À la fin, la sentence se joue **sur le téléphone du perdant** (c'est lui qui détecte ses réseaux installés).
+
+> Tant que Supabase n'est pas configuré, le mode en ligne affiche les instructions ; le mode **local** marche sans rien configurer.
+
+## Détection des réseaux installés
+
+- **Expo Go** : la détection est limitée (les permissions natives ne s'appliquent pas) → l'app affiche les 6 réseaux et tente quand même d'ouvrir celui choisi.
+- **Fiable** seulement dans un **build de dev** (`<queries>` Android + `LSApplicationQueriesSchemes` iOS) :
   ```bash
   npx expo run:android        # ou: eas build --profile development
   ```
 
-> ℹ️ **Version Expo** : le projet est volontairement épinglé sur **SDK 54** (RN 0.81) pour rester compatible avec l'app **Expo Go** du Play/App Store (qui supporte le SDK 54). Ne pas remonter en SDK 55/56 tant qu'Expo Go n'a pas suivi, sinon Expo Go affiche « Project is incompatible ».
->
-> Un fichier `.npmrc` active `legacy-peer-deps=true` (l'écosystème RN/Expo a des conflits de peer deps bénins) — garde-le pour que `npm install` / `npx expo install` passent sans flag.
+> ℹ️ **Version Expo** : épinglé sur **SDK 54** (RN 0.81) pour rester compatible avec l'app **Expo Go** des stores. Ne pas remonter en SDK 55/56 tant qu'Expo Go n'a pas suivi (sinon « Project is incompatible »). Le `.npmrc` (`legacy-peer-deps=true`) évite les conflits de peer deps RN/Expo.
 
 ## Structure
 
 ```
-App.tsx                         # providers + routeur de phases (state machine)
-app.json                        # config Expo (thème sombre, scheme, query schemes iOS)
-plugins/withAndroidSocialQueries.js   # injecte les <queries> Android (détection d'apps)
+App.tsx                         # menu + bascule local / en ligne
+app.json                        # config Expo (scheme, query schemes iOS, icône)
+assets/logo.svg                 # logo source (rouge/bleu)
+scripts/gen-icons.mjs           # SVG -> PNG (icône, splash, favicon) via sharp
+plugins/withAndroidSocialQueries.js   # <queries> Android pour la détection d'apps
 src/
-  theme.ts                      # couleurs / espacements / typo
-  types.ts                      # types du domaine (Player, Turn, Phase, ...)
+  theme.ts                      # couleurs (rouge #E8322D / bleu #2A35D6) / espacements
+  types.ts                      # Player, Turn, Phase, GameState...
   game/
-    GameContext.tsx             # Context + reducer = toute la logique de jeu
-    logic.ts                    # tirages aléatoires + calcul gagnant/perdant
-  data/socialApps.ts            # les 6 réseaux (scheme, deep links, logo, couleur)
-  utils/
-    social.ts                   # détection (canOpenURL) + ouverture des apps
-    haptics.ts                  # vibrations (no-op sur web)
-  components/                   # Screen, Button, Roulette, Scoreboard
-  screens/                      # 1 écran par phase de jeu
+    GameContext.tsx             # reducer LOCAL (pass-the-phone)
+    onlineReducer.ts            # reducer EN LIGNE (host-authoritative)
+    logic.ts                    # tirages + calcul gagnant/perdant (partagé)
+  net/
+    config.ts                   # clés Supabase
+    supabase.ts                 # client Supabase (lazy)
+    room.ts                     # canal Realtime (broadcast + presence)
+  online/
+    OnlineContext.tsx           # état réseau + autorité de l'hôte
+    OnlineApp.tsx               # routeur des écrans en ligne
+  data/socialApps.ts            # les 6 réseaux (scheme, deep links, logo)
+  utils/social.ts, haptics.ts
+  components/                   # AppLogo, Screen, Button, Roulette, Score...
+  screens/                      # écrans locaux + screens/online/ pour le multi
 ```
 
-## Roadmap (pas encore fait)
+## Roadmap
 
-- **Multijoueur en ligne** : sessions multi-appareils + invitation par **code/lien** (Supabase ou Firebase). L'UI actuelle (salon, code de salon, rôle chef) est déjà pensée pour ça.
-- Comptes / association de réseaux côté serveur (optionnel — le concept marche sans).
+- Invitation par **lien** (deep link `actionouverite://join/CODE`) en plus du code.
+- Reconnexion d'un joueur déconnecté en cours de partie.
 - Banque d'idées d'actions/vérités préremplies.
 
 ## Notes
 
-- 2 joueurs minimum pour démarrer (3+ recommandé pour que l'auteur reste vraiment anonyme).
-- L'anonymat de l'auteur : sur un seul téléphone, l'écran « passe le tel à X » nomme l'auteur le temps qu'il le prenne — la victime doit regarder ailleurs. L'épreuve affichée et le verdict ne révèlent jamais le nom.
+- 2 joueurs minimum (3+ recommandé).
+- En local, la 2ᵉ roulette n'est **plus anonyme** : les noms s'affichent directement.

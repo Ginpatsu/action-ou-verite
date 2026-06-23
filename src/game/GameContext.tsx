@@ -6,7 +6,7 @@ export const MIN_PLAYERS = 2;
 export const MAX_MANCHES = 50;
 
 const initialState: GameState = {
-  phase: 'home',
+  phase: 'lobby',
   players: [],
   totalManches: 5,
   currentManche: 1,

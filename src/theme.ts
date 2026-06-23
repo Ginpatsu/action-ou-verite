@@ -6,10 +6,10 @@ export const colors = {
   surfaceAlt: '#21212F',
   border: '#2C2C3D',
 
-  primary: '#FF1E56', // hot red — the signature color
-  primaryDark: '#C70F3C',
-  accent: '#9B5CFF', // electric purple
-  accentDark: '#6E33D6',
+  primary: '#E8322D', // rouge du logo — ACTION
+  primaryDark: '#B81F1B',
+  accent: '#2A35D6', // bleu du logo — VÉRITÉ
+  accentDark: '#1A23A8',
 
   success: '#2EE6A6',
   danger: '#FF3B5C',
