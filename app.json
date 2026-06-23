@@ -1,0 +1,50 @@
+{
+  "expo": {
+    "name": "Action ou Vérité",
+    "slug": "action-ou-verite",
+    "scheme": "actionouverite",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0B0B0F",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#0B0B0F",
+      "resizeMode": "contain",
+      "image": "./assets/icon.png"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "LSApplicationQueriesSchemes": [
+          "twitter",
+          "twitterauth",
+          "instagram",
+          "instagram-stories",
+          "fb",
+          "facebook",
+          "tiktok",
+          "snssdk1233",
+          "snapchat",
+          "discord"
+        ]
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0B0B0F",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "./plugins/withAndroidSocialQueries"
+    ]
+  }
+}
