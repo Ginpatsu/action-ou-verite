@@ -30,10 +30,10 @@ export default function LobbyScreen() {
         <Pressable onPress={exit} hitSlop={12}>
           <Text style={styles.back}>‹ Accueil</Text>
         </Pressable>
-        <View style={styles.codePill}>
+{/*         <View style={styles.codePill}>
           <Text style={styles.codeLabel}>SALON LOCAL</Text>
           <Text style={styles.code}>{code}</Text>
-        </View>
+        </View> */}
       </View>
 
       <Text style={styles.h1}>Les joueurs</Text>
