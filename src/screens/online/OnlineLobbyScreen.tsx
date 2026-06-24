@@ -38,8 +38,8 @@ export default function OnlineLobbyScreen() {
             <Text style={styles.playerIndex}>{i + 1}</Text>
             <Text style={styles.playerName} numberOfLines={1}>
               {p.name}
-              {p.isChef ? '  👑' : ''}
-              {p.id === myId ? '  (toi)' : ''}
+              {p.isChef ? ' (chef)' : ''}
+              {p.id === myId ? ' (toi)' : ''}
             </Text>
             {isHost && p.id !== myId ? (
               <Pressable onPress={() => act({ type: 'REMOVE_PLAYER', id: p.id })} hitSlop={10}>
@@ -74,7 +74,7 @@ export default function OnlineLobbyScreen() {
         </>
       ) : (
         <View style={styles.waiting}>
-          <Text style={styles.waitingText}>⏳ {state.totalManches} manches prévues</Text>
+          <Text style={styles.waitingText}>{state.totalManches} manches prévues</Text>
         </View>
       )}
     </Screen>

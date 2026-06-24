@@ -1,6 +1,6 @@
 import type { GameState } from '../types';
 import type { OnlineAction } from '../game/onlineReducer';
-import { GAME_SERVER } from './config';
+import { getGameServer } from './config';
 
 export type RoomStatus = 'connecting' | 'connected' | 'error' | 'closed';
 
@@ -28,7 +28,7 @@ export function joinRoom(code: string, me: Me, handlers: Handlers): Room {
     `room=${encodeURIComponent(code.toUpperCase())}` +
     `&id=${encodeURIComponent(me.id)}` +
     `&name=${encodeURIComponent(me.name)}`;
-  const ws = new WebSocket(`${GAME_SERVER}?${qs}`);
+  const ws = new WebSocket(`${getGameServer()}?${qs}`);
 
   const send = (event: string, payload: unknown) => {
     if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ event, payload }));

@@ -43,7 +43,6 @@ export default function OnlinePlayScreen() {
           <Text style={styles.kicker}>LA ROULETTE TOURNE…</Text>
           <View style={{ height: spacing.lg }} />
           <Roulette key={`t${turn.manche}`} items={names} winnerIndex={idx(turn.targetId)} accent={colors.primary} />
-          {/* <Text style={styles.suspense}>🥁🥁🥁</Text> */}
         </Screen>
       );
 
@@ -57,17 +56,15 @@ export default function OnlinePlayScreen() {
               <Text style={styles.sub}>Choisis ton poison.</Text>
               <View style={styles.choices}>
                 <Pressable style={[styles.card, { backgroundColor: colors.primary }]} onPress={() => act({ type: 'CHOOSE_TYPE', dareType: 'action' })}>
-                  {/* <Text style={styles.cardEmoji}>⚡</Text> */}
                   <Text style={styles.cardLabel}>ACTION</Text>
                 </Pressable>
                 <Pressable style={[styles.card, { backgroundColor: colors.accent }]} onPress={() => act({ type: 'CHOOSE_TYPE', dareType: 'verite' })}>
-                  {/* <Text style={styles.cardEmoji}>💬</Text> */}
                   <Text style={styles.cardLabel}>VÉRITÉ</Text>
                 </Pressable>
               </View>
             </>
           ) : (
-            <Waiting emoji="🎯" title={`${target?.name} est désigné·e`} sub="Action ou Vérité ? On attend son choix…" />
+            <Waiting emoji="" title={`${target?.name} est désigné·e`} sub="Action ou Vérité ? On attend son choix…" />
           )}
         </Screen>
       );
@@ -79,7 +76,6 @@ export default function OnlinePlayScreen() {
           <Text style={[styles.kicker, { color: colors.accent }]}>QUI ÉCRIT L'ÉPREUVE ?</Text>
           <View style={{ height: spacing.lg }} />
           <Roulette key={`w${turn.manche}`} items={names} winnerIndex={idx(turn.writerId)} accent={colors.accent} />
-          {/* <Text style={styles.suspense}>🥁🥁🥁</Text> */}
         </Screen>
       );
 
@@ -89,7 +85,7 @@ export default function OnlinePlayScreen() {
       ) : (
         <Screen center>
           {Header}
-          <Waiting emoji="✍️" title={`${writer?.name} écrit`} sub={`Une ${isAction ? 'action' : 'vérité'} pour ${target?.name}…`} />
+          <Waiting emoji="" title={`${writer?.name} écrit`} sub={`Une ${isAction ? 'action' : 'vérité'} pour ${target?.name}…`} />
         </Screen>
       );
 
@@ -100,7 +96,7 @@ export default function OnlinePlayScreen() {
           <Text style={styles.kicker}>POUR</Text>
           <Text style={styles.bigName}>{target?.name}</Text>
           <View style={[styles.chip, { backgroundColor: accent }]}>
-            <Text style={styles.chipText}>{isAction ? '⚡ ACTION' : '💬 VÉRITÉ'}</Text>
+            <Text style={styles.chipText}>{isAction ? 'ACTION' : 'VÉRITÉ'}</Text>
           </View>
           <View style={[styles.dareCard, { borderColor: accent }]}>
             <Text style={styles.dareText}>{turn.dare}</Text>
@@ -127,7 +123,7 @@ export default function OnlinePlayScreen() {
         <Screen>
           {Header}
           <View style={styles.center}>
-            <Text style={styles.emoji}>{turn.refused ? '💀' : '🔥'}</Text>
+            <Text style={styles.emoji}>{turn.refused ? '' : ''}</Text>
             <Text style={styles.h1}>{turn.refused ? '+1 malus' : 'Respect.'}</Text>
             <Text style={styles.sub}>
               {turn.refused ? `${target?.name} s'est dégonflé·e.` : `${target?.name} a assuré.`}
@@ -166,7 +162,6 @@ function TurnIntro() {
         </Pressable>
       </View>
       <View style={styles.center}>
-        {/* <Text style={styles.emoji}>🎯</Text> */}
         <Text style={styles.h1}>Qui va trembler ?</Text>
         {isHost ? (
           <>

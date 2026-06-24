@@ -15,7 +15,7 @@ export default function Scoreboard({ title = 'Malus' }: { title?: string }) {
         <View key={p.id} style={styles.row}>
           <Text style={styles.name} numberOfLines={1}>
             {p.name}
-            {p.isChef ? ' 👑' : ''}
+            {p.isChef ? ' (chef)' : ''}
           </Text>
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{p.malus}</Text>

@@ -1,13 +1,13 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
-import { SOCIAL_APPS, type SocialApp } from '../data/socialApps';
+import { type SocialApp } from '../data/socialApps';
 import { useGame } from '../game/GameContext';
 import { useExit } from '../components/ExitContext';
 import type { SocialId } from '../types';
-import { detectInstalled, openSocial } from '../utils/social';
+import { detectInstalled, openSocial, sortByInstalled } from '../utils/social';
 import { colors, font, radius, spacing } from '../theme';
 
 export default function FinaleScreen() {
@@ -26,16 +26,9 @@ export default function FinaleScreen() {
   const winner = playerById(state.result?.winnerId);
   const loser = playerById(state.result?.loserId);
 
-  // Show detected apps; if detection found nothing (e.g. Expo Go), show all six.
-  const { apps, fallback } = useMemo(() => {
-    if (installed && installed.length > 0) {
-      return { apps: SOCIAL_APPS.filter((a) => installed.includes(a.id)), fallback: false };
-    }
-    if (installed && installed.length === 0) {
-      return { apps: SOCIAL_APPS, fallback: true };
-    }
-    return { apps: [] as SocialApp[], fallback: false };
-  }, [installed]);
+  // On affiche TOUJOURS les 6 réseaux ; la détection ne sert qu'à les trier
+  // (installés en tête), pour ne jamais cacher un réseau réellement installé.
+  const apps = useMemo(() => sortByInstalled(installed ?? []), [installed]);
 
   const pick = async (app: SocialApp) => {
     const ok = await openSocial(app);
@@ -45,59 +38,43 @@ export default function FinaleScreen() {
   return (
     <Screen scroll>
       <Text style={styles.title}>FIN DE PARTIE</Text>
-      {state.result?.tie ? <Text style={styles.tie}>Égalité parfaite… le sort a tranché 🎲</Text> : null}
+      {state.result?.tie ? <Text style={styles.tie}>Égalité parfaite… le sort a tranché </Text> : null}
 
       <View style={[styles.podium, { borderColor: colors.gold }]}>
-        {/* <Text style={styles.podiumEmoji}>🏆</Text> */}
         <View style={styles.podiumInfo}>
           <Text style={styles.podiumLabel}>GAGNANT·E</Text>
           <Text style={[styles.podiumName, { color: colors.gold }]}>{winner?.name}</Text>
-          <Text style={styles.podiumMalus}>{winner?.malus} malus — le moins puni</Text>
+          <Text style={styles.podiumMalus}>{winner?.malus} malus - le moins puni</Text>
         </View>
       </View>
 
       <View style={[styles.podium, { borderColor: colors.danger }]}>
-        {/* <Text style={styles.podiumEmoji}>💀</Text> */}
         <View style={styles.podiumInfo}>
           <Text style={styles.podiumLabel}>PERDANT·E</Text>
           <Text style={[styles.podiumName, { color: colors.danger }]}>{loser?.name}</Text>
-          <Text style={styles.podiumMalus}>{loser?.malus} malus — la sentence</Text>
+          <Text style={styles.podiumMalus}>{loser?.malus} malus - la sentence</Text>
         </View>
       </View>
 
       <View style={styles.sentence}>
         <Text style={styles.sentenceLead}>
           <Text style={{ color: colors.gold, fontWeight: font.black }}>{winner?.name}</Text>, prends le téléphone de{' '}
-          <Text style={{ color: colors.danger, fontWeight: font.black }}>{loser?.name}</Text> 📱
+          <Text style={{ color: colors.danger, fontWeight: font.black }}>{loser?.name}</Text>
         </Text>
-        <Text style={styles.sentenceSub}>Choisis le réseau, ouvre l'appli et écris ce que tu veux à sa place 😈</Text>
+        <Text style={styles.sentenceSub}>Choisis le réseau, ouvre l'appli et écris ce que tu veux à sa place </Text>
       </View>
 
-      {installed === null ? (
-        <View style={styles.loading}>
-          <ActivityIndicator color={colors.accent} />
-          <Text style={styles.loadingText}>Détection des réseaux installés…</Text>
-        </View>
-      ) : (
-        <>
-          <View style={styles.grid}>
-            {apps.map((app) => (
-              <Pressable key={app.id} style={styles.appBtn} onPress={() => pick(app)}>
-                <View style={[styles.appIcon, { backgroundColor: app.color }]}>
-                  <FontAwesome5 name={app.icon as any} size={30} color={app.iconColor} />
-                </View>
-                <Text style={styles.appLabel}>{app.label}</Text>
-              </Pressable>
-            ))}
-          </View>
-          {fallback ? (
-            <Text style={styles.note}>
-              Détection auto indisponible ici (Expo Go). Tous les réseaux sont affichés — fonctionne précisément dans
-              un build de l'app.
-            </Text>
-          ) : null}
-        </>
-      )}
+      <View style={styles.grid}>
+        {apps.map((app) => (
+          <Pressable key={app.id} style={styles.appBtn} onPress={() => pick(app)}>
+            <View style={[styles.appIcon, { backgroundColor: app.color }]}>
+              <FontAwesome5 name={app.icon as any} size={30} color={app.iconColor} />
+            </View>
+            <Text style={styles.appLabel}>{app.label}</Text>
+          </Pressable>
+        ))}
+      </View>
+      <Text style={styles.note}>Touche le réseau voulu pour l'ouvrir.</Text>
 
       <View style={{ height: spacing.xl }} />
       <Button label="Rejouer (mêmes joueurs)" variant="primary" onPress={() => dispatch({ type: 'PLAY_AGAIN' })} />

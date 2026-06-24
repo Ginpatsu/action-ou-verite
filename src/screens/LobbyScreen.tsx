@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
@@ -6,16 +6,12 @@ import { MAX_MANCHES, MIN_PLAYERS, useGame } from '../game/GameContext';
 import { useExit } from '../components/ExitContext';
 import { colors, font, radius, spacing } from '../theme';
 
-function makeCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  return Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-}
-
+// Salon de la partie LOCALE (pass-the-phone) : on ajoute les joueurs sur ce
+// téléphone, on règle le nombre de manches, puis on lance.
 export default function LobbyScreen() {
   const { state, dispatch } = useGame();
   const exit = useExit();
   const [name, setName] = useState('');
-  const code = useMemo(makeCode, []);
   const canStart = state.players.length >= MIN_PLAYERS;
 
   const add = () => {
@@ -30,16 +26,9 @@ export default function LobbyScreen() {
         <Pressable onPress={exit} hitSlop={12}>
           <Text style={styles.back}>‹ Accueil</Text>
         </Pressable>
-{/*         <View style={styles.codePill}>
-          <Text style={styles.codeLabel}>SALON LOCAL</Text>
-          <Text style={styles.code}>{code}</Text>
-        </View> */}
       </View>
 
       <Text style={styles.h1}>Les joueurs</Text>
-{/*       <Text style={styles.help}>
-        Ajoute tout le monde sur ce téléphone. Le 1ᵉʳ joueur est le chef 👑 (il règle les manches et peut exclure).
-      </Text> */}
 
       <View style={styles.addRow}>
         <TextInput
@@ -65,7 +54,7 @@ export default function LobbyScreen() {
               <Text style={styles.playerIndex}>{i + 1}</Text>
               <Text style={styles.playerName} numberOfLines={1}>
                 {p.name}
-                {/* {p.isChef ? '  👑' : ''} */}
+                {p.isChef ? ' (chef)' : ''}
               </Text>
               <Pressable onPress={() => dispatch({ type: 'REMOVE_PLAYER', id: p.id })} hitSlop={10}>
                 <Text style={styles.kick}>✕</Text>
@@ -107,10 +96,6 @@ export default function LobbyScreen() {
 const styles = StyleSheet.create({
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.lg },
   back: { color: colors.textMuted, fontSize: 16, fontWeight: font.semibold },
-  codePill: { alignItems: 'flex-end' },
-  codeLabel: { color: colors.textFaint, fontSize: 10, fontWeight: font.bold, letterSpacing: 2 },
-  code: { color: colors.accent, fontSize: 20, fontWeight: font.black, letterSpacing: 4 },
-
   h1: { color: colors.text, fontSize: 30, fontWeight: font.black },
   h2: { color: colors.text, fontSize: 20, fontWeight: font.bold, marginTop: spacing.xl, marginBottom: spacing.sm },
   help: { color: colors.textMuted, fontSize: 13, lineHeight: 19, marginTop: spacing.xs, marginBottom: spacing.lg },

@@ -13,14 +13,9 @@ export default function MenuScreen({ onLocal, onOnline }: { onLocal: () => void;
         <Text style={styles.title}>
           ACTION <Text style={styles.ou}>ou</Text> VÉRITÉ HARDCORE
         </Text>
-{/*         <View style={styles.badge}>
-          <Text style={styles.badgeText}>HARDCORE</Text>
-        </View> */}
       </View>
 
-{/*       <Text style={styles.tagline}>
-        Une roulette te désigne. Le perdant finit avec un post écrit par le gagnant.
-      </Text> */}
+      <Text style={styles.tagline}>Une roulette te désigne. Le perdant finit avec un post écrit par le gagnant.</Text>
       <View style={styles.actions}>
         <Button label="Partie locale" onPress={onLocal} />
         <View style={{ height: spacing.md }} />

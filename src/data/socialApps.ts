@@ -1,22 +1,23 @@
 import type { SocialId } from '../types';
 
+// Description d'un réseau social ouvrable pour la "sentence" finale.
 export type SocialApp = {
   id: SocialId;
   label: string;
-  // FontAwesome5 brand glyph name.
-  icon: string;
-  // Circle background color + icon tint.
-  color: string;
-  iconColor: string;
-  // Scheme used to detect the app via Linking.canOpenURL().
-  probe: string;
-  // URLs tried in order when the winner taps the logo (first that opens wins).
+  icon: string; // nom du glyphe FontAwesome5 (brands)
+  color: string; // fond du rond
+  iconColor: string; // teinte du glyphe
+  // Schémas testés pour deviner si l'app est installée (Linking.canOpenURL).
+  // On en met plusieurs car certaines apps ne répondent au "ping" que sur
+  // certaines URL précises (le schéma nu échoue souvent → faux négatifs).
+  probes: string[];
+  // URLs tentées dans l'ordre à l'ouverture (la 1re qui marche gagne).
   openCandidates: string[];
-  // Always-openable web fallback.
+  // Repli web toujours ouvrable.
   web: string;
 };
 
-// The six networks the winner can post the punishment on.
+// Les six réseaux proposés au gagnant.
 export const SOCIAL_APPS: SocialApp[] = [
   {
     id: 'x',
@@ -24,7 +25,7 @@ export const SOCIAL_APPS: SocialApp[] = [
     icon: 'twitter',
     color: '#1D1D1F',
     iconColor: '#FFFFFF',
-    probe: 'twitter://',
+    probes: ['twitter://', 'twitterauth://', 'twitter://timeline'],
     openCandidates: ['twitter://post?message=', 'twitter://', 'https://twitter.com/intent/tweet'],
     web: 'https://twitter.com/intent/tweet',
   },
@@ -34,8 +35,8 @@ export const SOCIAL_APPS: SocialApp[] = [
     icon: 'instagram',
     color: '#E1306C',
     iconColor: '#FFFFFF',
-    probe: 'instagram://',
-    openCandidates: ['instagram://app', 'instagram://'],
+    probes: ['instagram://app', 'instagram://', 'instagram://camera'],
+    openCandidates: ['instagram://camera', 'instagram://app', 'instagram://'],
     web: 'https://www.instagram.com/',
   },
   {
@@ -44,8 +45,8 @@ export const SOCIAL_APPS: SocialApp[] = [
     icon: 'facebook',
     color: '#1877F2',
     iconColor: '#FFFFFF',
-    probe: 'fb://',
-    openCandidates: ['fb://feed', 'fb://', 'fb://facewebmodal/f'],
+    probes: ['fb://', 'fbapi://', 'fb://feed'],
+    openCandidates: ['fb://feed', 'fb://', 'fbapi://'],
     web: 'https://www.facebook.com/',
   },
   {
@@ -54,8 +55,8 @@ export const SOCIAL_APPS: SocialApp[] = [
     icon: 'tiktok',
     color: '#FE2C55',
     iconColor: '#FFFFFF',
-    probe: 'tiktok://',
-    openCandidates: ['tiktok://', 'snssdk1233://'],
+    probes: ['tiktok://', 'snssdk1233://', 'musically://'],
+    openCandidates: ['tiktok://', 'snssdk1233://', 'musically://'],
     web: 'https://www.tiktok.com/',
   },
   {
@@ -64,8 +65,8 @@ export const SOCIAL_APPS: SocialApp[] = [
     icon: 'snapchat-ghost',
     color: '#FFFC00',
     iconColor: '#0B0B0F',
-    probe: 'snapchat://',
-    openCandidates: ['snapchat://', 'snapchat://camera'],
+    probes: ['snapchat://', 'snapchat://camera'],
+    openCandidates: ['snapchat://camera', 'snapchat://'],
     web: 'https://www.snapchat.com/',
   },
   {
@@ -74,8 +75,8 @@ export const SOCIAL_APPS: SocialApp[] = [
     icon: 'discord',
     color: '#5865F2',
     iconColor: '#FFFFFF',
-    probe: 'discord://',
-    openCandidates: ['discord://', 'discord://app'],
+    probes: ['discord://', 'discord://app'],
+    openCandidates: ['discord://app', 'discord://'],
     web: 'https://discord.com/channels/@me',
   },
 ];

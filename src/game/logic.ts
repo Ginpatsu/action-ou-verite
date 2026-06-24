@@ -21,7 +21,7 @@ export function pickWriter(players: Player[], targetId: string): string {
 }
 
 // Most malus = loser; least malus = winner. If everyone is tied, we still
-// crown a (random) loser and winner so the punishment can happen — flagged as a tie.
+// crown a (random) loser and winner so the punishment can happen - flagged as a tie.
 export function computeResult(players: Player[]): GameResult {
   const scores = players.map((p) => p.malus);
   const max = Math.max(...scores);

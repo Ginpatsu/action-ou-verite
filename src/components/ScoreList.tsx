@@ -13,7 +13,7 @@ export default function ScoreList({ players, title = 'Malus', highlightId }: { p
         <View key={p.id} style={styles.row}>
           <Text style={[styles.name, p.id === highlightId && { color: colors.accent }]} numberOfLines={1}>
             {p.name}
-            {p.isChef ? ' 👑' : ''}
+            {p.isChef ? ' (chef)' : ''}
             {p.id === highlightId ? ' (toi)' : ''}
           </Text>
           <View style={styles.badge}>

@@ -16,7 +16,7 @@ const PACKAGES = [
 ];
 
 // URL schemes we probe with Linking.canOpenURL().
-const SCHEMES = ['twitter', 'instagram', 'fb', 'facebook', 'tiktok', 'snssdk1233', 'snapchat', 'discord'];
+const SCHEMES = ['twitter', 'twitterauth', 'instagram', 'fb', 'fbapi', 'facebook', 'tiktok', 'musically', 'snssdk1233', 'snapchat', 'discord'];
 
 module.exports = function withAndroidSocialQueries(config) {
   return withAndroidManifest(config, (cfg) => {

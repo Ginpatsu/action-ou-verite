@@ -20,7 +20,7 @@ export default function WriteDareScreen() {
         <Text style={styles.h1}>
           Écris une <Text style={{ color: accent }}>{typeLabel}</Text>
         </Text>
-        <Text style={styles.sub}>pour {target?.name}. Sois aussi tordu·e que tu veux 😈</Text>
+        <Text style={styles.sub}>pour {target?.name}. Sois aussi tordu·e que tu veux </Text>
 
         <TextInput
           value={text}

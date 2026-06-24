@@ -7,32 +7,55 @@ import { useOnline } from '../../online/OnlineContext';
 import { getSavedPseudo } from '../../utils/identity';
 import { colors, font, radius, spacing } from '../../theme';
 
+// Écran d'entrée du mode en ligne : configurer le serveur (1re fois / build),
+// puis créer ou rejoindre une partie.
 export default function OnlineEntryScreen({ onBack }: { onBack: () => void }) {
-  const { configured, createRoom, join } = useOnline();
+  const { configured, serverUrl, setServer, createRoom, join } = useOnline();
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
+  const [editingServer, setEditingServer] = useState(false);
+  const [serverInput, setServerInput] = useState('');
 
   useEffect(() => {
     getSavedPseudo().then((saved) => saved && setName(saved));
   }, []);
 
-  if (!configured) {
+  // Pré-remplit le champ avec l'adresse connue quand on ouvre l'éditeur serveur.
+  useEffect(() => {
+    if (editingServer || !configured) setServerInput(serverUrl);
+  }, [editingServer, configured, serverUrl]);
+
+  const saveServer = () => {
+    setServer(serverInput);
+    setEditingServer(false);
+  };
+
+  // Formulaire d'adresse serveur : affiché si non configuré (cas d'un BUILD, où
+  // il n'y a pas de Metro pour deviner l'IP) ou si on clique sur "Modifier".
+  if (!configured || editingServer) {
     return (
       <Screen scroll center>
-        {/* <Text style={styles.emoji}>🔌</Text> */}
-        <Text style={styles.h1}>Serveur de jeu introuvable</Text>
+        <Text style={styles.title}>Adresse du serveur</Text>
         <Text style={styles.help}>
-          L'adresse du serveur n'a pas pu être détectée automatiquement (mode tunnel ou web ?).
+          Entre l'IP du PC qui fait tourner le serveur (docker compose up). Les téléphones doivent être sur le même
+          Wi-Fi que ce PC.
         </Text>
-        <View style={styles.steps}>
-          <Text style={styles.step}>1. Lance le serveur sur ton PC : <Text style={styles.code}>docker compose up -d --build</Text></Text>
-          <Text style={styles.step}>2. Mets les téléphones sur le MÊME Wi-Fi que le PC, puis lance <Text style={styles.code}>npx expo start</Text> (mode LAN).</Text>
-          <Text style={styles.step}>
-            3. Sinon force l'adresse via <Text style={styles.code}>EXPO_PUBLIC_GAME_SERVER=ws://IP_DU_PC:8787</Text>
-          </Text>
-        </View>
-        <View style={{ height: spacing.xl }} />
-        <Button label="‹ Retour" variant="outline" onPress={onBack} />
+        <View style={{ height: spacing.lg }} />
+        <TextInput
+          value={serverInput}
+          onChangeText={setServerInput}
+          placeholder="192.168.1.20"
+          placeholderTextColor={colors.textFaint}
+          style={styles.input}
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="url"
+        />
+        <Text style={styles.hint}>IP, IP:port, ou ws://… (port 8787 par défaut)</Text>
+        <View style={{ height: spacing.lg }} />
+        <Button label="Enregistrer" disabled={!serverInput.trim()} onPress={saveServer} />
+        <View style={{ height: spacing.md }} />
+        <Button label="‹ Retour" variant="outline" onPress={() => (configured ? setEditingServer(false) : onBack())} />
       </Screen>
     );
   }
@@ -48,6 +71,13 @@ export default function OnlineEntryScreen({ onBack }: { onBack: () => void }) {
           <Text style={styles.title}>Partie en ligne</Text>
           <Text style={styles.sub}>Plusieurs téléphones pour une même partie.</Text>
         </View>
+
+        <Pressable onPress={() => setEditingServer(true)} style={styles.serverRow}>
+          <Text style={styles.serverText} numberOfLines={1}>
+            Serveur : {serverUrl}
+          </Text>
+          <Text style={styles.serverEdit}>Modifier</Text>
+        </Pressable>
 
         <Text style={styles.label}>Ton pseudo</Text>
         <TextInput
@@ -94,8 +124,8 @@ export default function OnlineEntryScreen({ onBack }: { onBack: () => void }) {
 
 const styles = StyleSheet.create({
   back: { color: colors.textMuted, fontSize: 16, fontWeight: font.semibold, marginBottom: spacing.md },
-  brand: { alignItems: 'center', marginBottom: spacing.xl },
-  title: { color: colors.text, fontSize: 26, fontWeight: font.black, marginTop: spacing.md },
+  brand: { alignItems: 'center', marginBottom: spacing.lg },
+  title: { color: colors.text, fontSize: 26, fontWeight: font.black, marginTop: spacing.md, textAlign: 'center' },
   sub: { color: colors.textMuted, fontSize: 15, marginTop: spacing.xs },
   label: { color: colors.textMuted, fontWeight: font.bold, fontSize: 13, letterSpacing: 1, marginBottom: spacing.sm },
   input: {
@@ -113,10 +143,21 @@ const styles = StyleSheet.create({
   divider: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginVertical: spacing.xl },
   line: { flex: 1, height: 1, backgroundColor: colors.border },
   or: { color: colors.textFaint, fontWeight: font.semibold },
-  emoji: { fontSize: 50, textAlign: 'center' },
-  h1: { color: colors.text, fontSize: 24, fontWeight: font.black, textAlign: 'center', marginTop: spacing.md },
   help: { color: colors.textMuted, fontSize: 15, textAlign: 'center', marginTop: spacing.sm, lineHeight: 21 },
-  steps: { marginTop: spacing.lg, gap: spacing.sm, alignSelf: 'stretch' },
-  step: { color: colors.text, fontSize: 14, lineHeight: 20 },
-  code: { color: colors.accent, fontWeight: font.bold },
+  hint: { color: colors.textFaint, fontSize: 12, marginTop: spacing.sm },
+  serverRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    marginBottom: spacing.lg,
+    gap: spacing.md,
+  },
+  serverText: { color: colors.textMuted, fontSize: 13, flex: 1 },
+  serverEdit: { color: colors.accent, fontWeight: font.bold, fontSize: 13 },
 });

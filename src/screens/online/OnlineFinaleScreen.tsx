@@ -1,12 +1,12 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import Button from '../../components/Button';
 import Screen from '../../components/Screen';
-import { SOCIAL_APPS, type SocialApp } from '../../data/socialApps';
+import { type SocialApp } from '../../data/socialApps';
 import { useOnline } from '../../online/OnlineContext';
 import type { SocialId } from '../../types';
-import { detectInstalled, openSocial } from '../../utils/social';
+import { detectInstalled, openSocial, sortByInstalled } from '../../utils/social';
 import { colors, font, radius, spacing } from '../../theme';
 
 export default function OnlineFinaleScreen() {
@@ -24,11 +24,8 @@ export default function OnlineFinaleScreen() {
     };
   }, [amLoser]);
 
-  const { apps, fallback } = useMemo(() => {
-    if (installed && installed.length > 0) return { apps: SOCIAL_APPS.filter((a) => installed.includes(a.id)), fallback: false };
-    if (installed && installed.length === 0) return { apps: SOCIAL_APPS, fallback: true };
-    return { apps: [] as SocialApp[], fallback: false };
-  }, [installed]);
+  // Toujours les 6 réseaux, juste triés "installés d'abord" (rien n'est caché).
+  const apps = useMemo(() => sortByInstalled(installed ?? []), [installed]);
 
   if (!state || !state.result) return null;
   const winner = playerById(state.result.winnerId);
@@ -42,17 +39,15 @@ export default function OnlineFinaleScreen() {
   return (
     <Screen scroll>
       <Text style={styles.title}>FIN DE PARTIE</Text>
-      {state.result.tie ? <Text style={styles.tie}>Égalité… le sort a tranché 🎲</Text> : null}
+      {state.result.tie ? <Text style={styles.tie}>Égalité… le sort a tranché </Text> : null}
 
       <View style={[styles.podium, { borderColor: colors.gold }]}>
-        {/* <Text style={styles.podiumEmoji}>🏆</Text> */}
         <View style={{ flex: 1 }}>
           <Text style={styles.podiumLabel}>GAGNANT·E</Text>
           <Text style={[styles.podiumName, { color: colors.gold }]}>{winner?.name}</Text>
         </View>
       </View>
       <View style={[styles.podium, { borderColor: colors.danger }]}>
-        {/* <Text style={styles.podiumEmoji}>💀</Text> */}
         <View style={{ flex: 1 }}>
           <Text style={styles.podiumLabel}>PERDANT·E</Text>
           <Text style={[styles.podiumName, { color: colors.danger }]}>{loser?.name}</Text>
@@ -61,36 +56,27 @@ export default function OnlineFinaleScreen() {
 
       {amLoser ? (
         <View style={styles.sentence}>
-          <Text style={styles.lead}>😈 C'est toi le perdant !</Text>
+          <Text style={styles.lead}> C'est toi le perdant !</Text>
           <Text style={styles.leadSub}>
             Donne ton téléphone à <Text style={{ color: colors.gold, fontWeight: font.black }}>{winner?.name}</Text> : il/elle
             choisit le réseau et écrit ce qu'il veut sur ton compte.
           </Text>
-          {installed === null ? (
-            <View style={styles.loading}>
-              <ActivityIndicator color={colors.accent} />
-              <Text style={styles.loadingText}>Détection des réseaux…</Text>
-            </View>
-          ) : (
-            <>
-              <View style={styles.grid}>
-                {apps.map((app) => (
-                  <Pressable key={app.id} style={styles.appBtn} onPress={() => pick(app)}>
-                    <View style={[styles.appIcon, { backgroundColor: app.color }]}>
-                      <FontAwesome5 name={app.icon as any} size={30} color={app.iconColor} />
-                    </View>
-                    <Text style={styles.appLabel}>{app.label}</Text>
-                  </Pressable>
-                ))}
-              </View>
-              {fallback ? <Text style={styles.note}>Détection auto indisponible (Expo Go) — réseaux tous affichés.</Text> : null}
-            </>
-          )}
+          <View style={styles.grid}>
+            {apps.map((app) => (
+              <Pressable key={app.id} style={styles.appBtn} onPress={() => pick(app)}>
+                <View style={[styles.appIcon, { backgroundColor: app.color }]}>
+                  <FontAwesome5 name={app.icon as any} size={30} color={app.iconColor} />
+                </View>
+                <Text style={styles.appLabel}>{app.label}</Text>
+              </Pressable>
+            ))}
+          </View>
+          <Text style={styles.note}>Touche le réseau voulu pour l'ouvrir.</Text>
         </View>
       ) : (
         <View style={styles.sentence}>
           <Text style={styles.lead}>
-            {loser?.name} donne son téléphone à {winner?.name} 📱
+            {loser?.name} donne son téléphone à {winner?.name}
           </Text>
           <Text style={styles.leadSub}>La sentence se joue sur le téléphone du perdant.</Text>
         </View>

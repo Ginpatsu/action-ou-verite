@@ -13,7 +13,6 @@ export default function JudgeHandoffScreen() {
 
   return (
     <Screen center>
-      {/* <Text style={styles.emoji}>⚖️</Text> */}
       <Text style={styles.kicker}>LE TÉLÉPHONE REVIENT À</Text>
       <Text style={styles.name}>{writer?.name}</Text>
       <Text style={styles.sub}>À toi de juger si {target?.name} a assuré son épreuve.</Text>

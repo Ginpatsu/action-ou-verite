@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 import * as Haptics from 'expo-haptics';
 
-// Thin, crash-safe wrappers — haptics are a no-op on web / unsupported devices.
+// Thin, crash-safe wrappers - haptics are a no-op on web / unsupported devices.
 const enabled = Platform.OS === 'ios' || Platform.OS === 'android';
 
 export function tap() {

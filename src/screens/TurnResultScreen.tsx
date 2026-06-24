@@ -15,7 +15,7 @@ export default function TurnResultScreen() {
   return (
     <Screen>
       <View style={styles.center}>
-        <Text style={styles.emoji}>{refused ? '💀' : '🔥'}</Text>
+        <Text style={styles.emoji}>{refused ? '' : ''}</Text>
         {refused ? (
           <>
             <Text style={styles.h1}>+1 malus</Text>

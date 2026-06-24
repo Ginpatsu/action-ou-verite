@@ -24,14 +24,14 @@ export default function WriterRouletteScreen() {
         {done ? (
           <>
             <Text style={styles.h1}>
-              <Text style={{ color: colors.accent }}>{writer?.name}</Text> écrit l'épreuve ! 
+              <Text style={{ color: colors.accent }}>{writer?.name}</Text> écrit l'épreuve !
             </Text>
             <Text style={styles.sub}>Passe-lui le téléphone.</Text>
             <View style={{ height: spacing.lg }} />
             <Button label="Continuer" variant="accent" onPress={() => dispatch({ type: 'WRITER_DONE' })} />
           </>
         ) : (
-          <Text style={styles.suspense}></Text>
+          null
         )}
       </View>
     </Screen>

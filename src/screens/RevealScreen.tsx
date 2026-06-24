@@ -18,7 +18,7 @@ export default function RevealScreen() {
       <Text style={styles.name}>{target?.name}</Text>
 
       <View style={[styles.chip, { backgroundColor: accent }]}>
-        <Text style={styles.chipText}>{isAction ? '⚡ ACTION' : '💬 VÉRITÉ'}</Text>
+        <Text style={styles.chipText}>{isAction ? 'ACTION' : 'VÉRITÉ'}</Text>
       </View>
 
       <View style={[styles.card, { borderColor: accent }]}>
