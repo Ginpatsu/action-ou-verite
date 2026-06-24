@@ -22,7 +22,7 @@ export default function TurnIntroScreen() {
       </View>
 
       <View style={styles.center}>
-        <Text style={styles.emoji}>🎯</Text>
+        {/* <Text style={styles.emoji}>🎯</Text> */}
         <Text style={styles.h1}>Qui va trembler ?</Text>
         <Text style={styles.sub}>La roulette désigne la prochaine victime.</Text>
         <View style={{ height: spacing.xl }} />

@@ -45,14 +45,14 @@ export default function OnlineFinaleScreen() {
       {state.result.tie ? <Text style={styles.tie}>Égalité… le sort a tranché 🎲</Text> : null}
 
       <View style={[styles.podium, { borderColor: colors.gold }]}>
-        <Text style={styles.podiumEmoji}>🏆</Text>
+        {/* <Text style={styles.podiumEmoji}>🏆</Text> */}
         <View style={{ flex: 1 }}>
           <Text style={styles.podiumLabel}>GAGNANT·E</Text>
           <Text style={[styles.podiumName, { color: colors.gold }]}>{winner?.name}</Text>
         </View>
       </View>
       <View style={[styles.podium, { borderColor: colors.danger }]}>
-        <Text style={styles.podiumEmoji}>💀</Text>
+        {/* <Text style={styles.podiumEmoji}>💀</Text> */}
         <View style={{ flex: 1 }}>
           <Text style={styles.podiumLabel}>PERDANT·E</Text>
           <Text style={[styles.podiumName, { color: colors.danger }]}>{loser?.name}</Text>

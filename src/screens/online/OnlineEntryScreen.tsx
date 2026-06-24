@@ -19,7 +19,7 @@ export default function OnlineEntryScreen({ onBack }: { onBack: () => void }) {
   if (!configured) {
     return (
       <Screen scroll center>
-        <Text style={styles.emoji}>🔌</Text>
+        {/* <Text style={styles.emoji}>🔌</Text> */}
         <Text style={styles.h1}>Serveur de jeu introuvable</Text>
         <Text style={styles.help}>
           L'adresse du serveur n'a pas pu être détectée automatiquement (mode tunnel ou web ?).
@@ -46,7 +46,7 @@ export default function OnlineEntryScreen({ onBack }: { onBack: () => void }) {
         <View style={styles.brand}>
           <AppLogo size={84} />
           <Text style={styles.title}>Partie en ligne</Text>
-          <Text style={styles.sub}>Plusieurs téléphones, une même partie.</Text>
+          <Text style={styles.sub}>Plusieurs téléphones pour une même partie.</Text>
         </View>
 
         <Text style={styles.label}>Ton pseudo</Text>
@@ -61,11 +61,11 @@ export default function OnlineEntryScreen({ onBack }: { onBack: () => void }) {
         />
 
         <View style={{ height: spacing.lg }} />
-        <Button label="🎮 Créer une partie" disabled={!name.trim()} onPress={() => createRoom(name)} />
+        <Button label="Créer une partie" disabled={!name.trim()} onPress={() => createRoom(name)} />
 
         <View style={styles.divider}>
           <View style={styles.line} />
-          <Text style={styles.or}>ou rejoindre</Text>
+          <Text style={styles.or}>ou rejoindre une partie</Text>
           <View style={styles.line} />
         </View>
 
@@ -82,7 +82,7 @@ export default function OnlineEntryScreen({ onBack }: { onBack: () => void }) {
         />
         <View style={{ height: spacing.lg }} />
         <Button
-          label="📲 Rejoindre"
+          label="Rejoindre"
           variant="accent"
           disabled={!name.trim() || code.trim().length < 4}
           onPress={() => join(code, name)}

@@ -48,7 +48,7 @@ export default function FinaleScreen() {
       {state.result?.tie ? <Text style={styles.tie}>Égalité parfaite… le sort a tranché 🎲</Text> : null}
 
       <View style={[styles.podium, { borderColor: colors.gold }]}>
-        <Text style={styles.podiumEmoji}>🏆</Text>
+        {/* <Text style={styles.podiumEmoji}>🏆</Text> */}
         <View style={styles.podiumInfo}>
           <Text style={styles.podiumLabel}>GAGNANT·E</Text>
           <Text style={[styles.podiumName, { color: colors.gold }]}>{winner?.name}</Text>
@@ -57,7 +57,7 @@ export default function FinaleScreen() {
       </View>
 
       <View style={[styles.podium, { borderColor: colors.danger }]}>
-        <Text style={styles.podiumEmoji}>💀</Text>
+        {/* <Text style={styles.podiumEmoji}>💀</Text> */}
         <View style={styles.podiumInfo}>
           <Text style={styles.podiumLabel}>PERDANT·E</Text>
           <Text style={[styles.podiumName, { color: colors.danger }]}>{loser?.name}</Text>

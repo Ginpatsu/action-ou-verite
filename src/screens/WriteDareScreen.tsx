@@ -16,7 +16,7 @@ export default function WriteDareScreen() {
   return (
     <Screen scroll>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <Text style={styles.kicker}>À TOI D'ÉCRIRE ✍️</Text>
+        <Text style={styles.kicker}>À TOI D'ÉCRIRE !</Text>
         <Text style={styles.h1}>
           Écris une <Text style={{ color: accent }}>{typeLabel}</Text>
         </Text>

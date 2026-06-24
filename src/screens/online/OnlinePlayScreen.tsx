@@ -43,7 +43,7 @@ export default function OnlinePlayScreen() {
           <Text style={styles.kicker}>LA ROULETTE TOURNE…</Text>
           <View style={{ height: spacing.lg }} />
           <Roulette key={`t${turn.manche}`} items={names} winnerIndex={idx(turn.targetId)} accent={colors.primary} />
-          <Text style={styles.suspense}>🥁🥁🥁</Text>
+          {/* <Text style={styles.suspense}>🥁🥁🥁</Text> */}
         </Screen>
       );
 
@@ -53,15 +53,15 @@ export default function OnlinePlayScreen() {
           {Header}
           {amTarget ? (
             <>
-              <Text style={styles.kicker}>C'EST TOI 🎯</Text>
+              <Text style={styles.kicker}>C'EST TOI !</Text>
               <Text style={styles.sub}>Choisis ton poison.</Text>
               <View style={styles.choices}>
                 <Pressable style={[styles.card, { backgroundColor: colors.primary }]} onPress={() => act({ type: 'CHOOSE_TYPE', dareType: 'action' })}>
-                  <Text style={styles.cardEmoji}>⚡</Text>
+                  {/* <Text style={styles.cardEmoji}>⚡</Text> */}
                   <Text style={styles.cardLabel}>ACTION</Text>
                 </Pressable>
                 <Pressable style={[styles.card, { backgroundColor: colors.accent }]} onPress={() => act({ type: 'CHOOSE_TYPE', dareType: 'verite' })}>
-                  <Text style={styles.cardEmoji}>💬</Text>
+                  {/* <Text style={styles.cardEmoji}>💬</Text> */}
                   <Text style={styles.cardLabel}>VÉRITÉ</Text>
                 </Pressable>
               </View>
@@ -79,7 +79,7 @@ export default function OnlinePlayScreen() {
           <Text style={[styles.kicker, { color: colors.accent }]}>QUI ÉCRIT L'ÉPREUVE ?</Text>
           <View style={{ height: spacing.lg }} />
           <Roulette key={`w${turn.manche}`} items={names} winnerIndex={idx(turn.writerId)} accent={colors.accent} />
-          <Text style={styles.suspense}>🥁🥁🥁</Text>
+          {/* <Text style={styles.suspense}>🥁🥁🥁</Text> */}
         </Screen>
       );
 
@@ -110,8 +110,8 @@ export default function OnlinePlayScreen() {
             <>
               <Text style={styles.sub}>{target?.name} a-t-il/elle assuré ?</Text>
               <View style={styles.verdict}>
-                <Button label="✅ Assuré" variant="success" style={styles.verdictBtn} onPress={() => act({ type: 'SET_VERDICT', refused: false })} />
-                <Button label="💀 Dégonflé" variant="danger" style={styles.verdictBtn} onPress={() => act({ type: 'SET_VERDICT', refused: true })} />
+                <Button label="Assuré" variant="success" style={styles.verdictBtn} onPress={() => act({ type: 'SET_VERDICT', refused: false })} />
+                <Button label="Dégonflé" variant="danger" style={styles.verdictBtn} onPress={() => act({ type: 'SET_VERDICT', refused: true })} />
               </View>
             </>
           ) : amTarget ? (
@@ -166,7 +166,7 @@ function TurnIntro() {
         </Pressable>
       </View>
       <View style={styles.center}>
-        <Text style={styles.emoji}>🎯</Text>
+        {/* <Text style={styles.emoji}>🎯</Text> */}
         <Text style={styles.h1}>Qui va trembler ?</Text>
         {isHost ? (
           <>
@@ -209,11 +209,11 @@ function WriteDareView({
     <Screen scroll>
       {header}
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <Text style={styles.kicker}>À TOI D'ÉCRIRE ✍️</Text>
+        <Text style={styles.kicker}>À TOI D'ÉCRIRE</Text>
         <Text style={styles.h1}>
           Une <Text style={{ color: isAction ? colors.primary : colors.accent }}>{isAction ? 'ACTION' : 'VÉRITÉ'}</Text>
         </Text>
-        <Text style={styles.sub}>pour {targetName}. Sois tordu·e 😈</Text>
+        <Text style={styles.sub}>pour {targetName}. Sois tordu·e</Text>
         <TextInput
           value={text}
           onChangeText={setText}

@@ -19,14 +19,14 @@ export default function ChooseTypeScreen() {
           style={[styles.card, { backgroundColor: colors.primary }]}
           onPress={() => dispatch({ type: 'CHOOSE_TYPE', dareType: 'action' })}
         >
-          <Text style={styles.cardEmoji}>⚡</Text>
+          {/* <Text style={styles.cardEmoji}>⚡</Text> */}
           <Text style={styles.cardLabel}>ACTION</Text>
         </Pressable>
         <Pressable
           style={[styles.card, { backgroundColor: colors.accent }]}
           onPress={() => dispatch({ type: 'CHOOSE_TYPE', dareType: 'verite' })}
         >
-          <Text style={styles.cardEmoji}>💬</Text>
+          {/* <Text style={styles.cardEmoji}>💬</Text> */}
           <Text style={styles.cardLabel}>VÉRITÉ</Text>
         </Pressable>
       </View>

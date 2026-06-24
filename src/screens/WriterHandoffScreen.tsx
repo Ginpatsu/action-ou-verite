@@ -12,7 +12,7 @@ export default function WriterHandoffScreen() {
 
   return (
     <Screen center>
-      <Text style={styles.emoji}>✍️</Text>
+      {/* <Text style={styles.emoji}>✍️</Text> */}
       <Text style={styles.kicker}>PASSE LE TÉLÉPHONE À</Text>
       <Text style={styles.name}>{writer?.name}</Text>
       <Text style={styles.sub}>C'est toi qui écris l'épreuve de {target?.name}.</Text>

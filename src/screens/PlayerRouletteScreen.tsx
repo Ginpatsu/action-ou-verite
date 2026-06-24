@@ -23,14 +23,15 @@ export default function PlayerRouletteScreen() {
         {done ? (
           <>
             <Text style={styles.h1}>
-              C'est <Text style={{ color: colors.primary }}>{target?.name}</Text> ! 🎯
+              C'est <Text style={{ color: colors.primary }}>{target?.name}</Text> ! 
             </Text>
             <Text style={styles.sub}>Action ou vérité ? À toi de choisir.</Text>
             <View style={{ height: spacing.lg }} />
             <Button label="Continuer" onPress={() => dispatch({ type: 'TARGET_DONE' })} />
           </>
         ) : (
-          <Text style={styles.suspense}>🥁🥁🥁</Text>
+            // <Text style={styles.suspense}>🥁🥁🥁</Text>
+            <Text style={styles.suspense}></Text>
         )}
       </View>
     </Screen>

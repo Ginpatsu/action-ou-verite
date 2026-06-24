@@ -11,7 +11,7 @@ export default function JudgeScreen() {
 
   return (
     <Screen center>
-      <Text style={styles.kicker}>VERDICT ⚖️</Text>
+      <Text style={styles.kicker}>VERDICT</Text>
       <Text style={styles.h1}>{target?.name} a assuré ?</Text>
       <Text style={styles.sub}>Si la personne se dégonfle, elle prend un malus 💀</Text>
 
@@ -20,7 +20,7 @@ export default function JudgeScreen() {
           style={[styles.card, { backgroundColor: colors.success }]}
           onPress={() => dispatch({ type: 'SET_VERDICT', refused: false })}
         >
-          <Text style={styles.cardEmoji}>✅</Text>
+          {/* <Text style={styles.cardEmoji}>✅</Text> */}
           <Text style={[styles.cardLabel, { color: colors.black }]}>A ASSURÉ</Text>
           <Text style={[styles.cardHint, { color: 'rgba(0,0,0,0.6)' }]}>aucun malus</Text>
         </Pressable>
@@ -31,7 +31,7 @@ export default function JudgeScreen() {
             dispatch({ type: 'SET_VERDICT', refused: true });
           }}
         >
-          <Text style={styles.cardEmoji}>💀</Text>
+          {/* <Text style={styles.cardEmoji}>💀</Text> */}
           <Text style={[styles.cardLabel, { color: colors.white }]}>S'EST DÉGONFLÉ·E</Text>
           <Text style={[styles.cardHint, { color: 'rgba(255,255,255,0.75)' }]}>+1 malus</Text>
         </Pressable>

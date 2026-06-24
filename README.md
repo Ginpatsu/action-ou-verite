@@ -1,4 +1,4 @@
-# Action ou Vérité — Hardcore 🔥
+# Action ou Vérité — Hardcore 
 
 Jeu de soirée **Action ou Vérité** en mode hardcore, fait en **Expo / React Native**.
 Deux modes : **local** (un seul téléphone, pass-the-phone) et **en ligne** (plusieurs téléphones).

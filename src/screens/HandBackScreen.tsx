@@ -11,7 +11,7 @@ export default function HandBackScreen() {
 
   return (
     <Screen center>
-      <Text style={styles.emoji}>📲</Text>
+      {/* <Text style={styles.emoji}>📲</Text> */}
       <Text style={styles.h1}>Épreuve prête.</Text>
       <Text style={styles.sub}>Rends le téléphone à {target?.name}.</Text>
       <View style={{ height: spacing.xl }} />

@@ -1,6 +1,7 @@
 import type { DareType, GameState, Player } from '../types';
 import { computeResult, pickTarget, pickWriter } from './logic';
 
+
 export const MIN_PLAYERS_ONLINE = 2;
 export const MAX_MANCHES = 50;
 
@@ -26,7 +27,7 @@ export function initialOnlineState(host: { id: string; name: string }): GameStat
   return {
     phase: 'lobby',
     players: [{ id: host.id, name: host.name, malus: 0, isChef: true }],
-    totalManches: 5,
+    totalManches: 10,
     currentManche: 1,
     turn: null,
     result: null,

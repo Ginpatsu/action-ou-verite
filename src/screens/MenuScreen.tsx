@@ -11,24 +11,22 @@ export default function MenuScreen({ onLocal, onOnline }: { onLocal: () => void;
       <View style={styles.brand}>
         <AppLogo size={140} />
         <Text style={styles.title}>
-          ACTION <Text style={styles.ou}>ou</Text> VÉRITÉ
+          ACTION <Text style={styles.ou}>ou</Text> VÉRITÉ HARDCORE
         </Text>
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>HARDCORE 🔥</Text>
-        </View>
+{/*         <View style={styles.badge}>
+          <Text style={styles.badgeText}>HARDCORE</Text>
+        </View> */}
       </View>
 
-      <Text style={styles.tagline}>
+{/*       <Text style={styles.tagline}>
         Une roulette te désigne. Le perdant finit avec un post écrit par le gagnant.
-      </Text>
-
+      </Text> */}
       <View style={styles.actions}>
-        <Button label="🎉 Partie locale" onPress={onLocal} />
+        <Button label="Partie locale" onPress={onLocal} />
         <View style={{ height: spacing.md }} />
-        <Button label="📡 Partie en ligne" variant="accent" onPress={onOnline} />
+        <Button label="Partie en ligne" variant="accent" onPress={onOnline} />
       </View>
 
-      <Text style={styles.footer}>Local = un seul téléphone · En ligne = plusieurs téléphones</Text>
     </Screen>
   );
 }

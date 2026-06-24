@@ -8,7 +8,7 @@ export const MAX_MANCHES = 50;
 const initialState: GameState = {
   phase: 'lobby',
   players: [],
-  totalManches: 5,
+  totalManches: 10,
   currentManche: 1,
   turn: null,
   result: null,

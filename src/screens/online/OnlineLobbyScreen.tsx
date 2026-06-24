@@ -28,7 +28,7 @@ export default function OnlineLobbyScreen() {
       <Text style={styles.h1}>Salon en ligne</Text>
       <Text style={styles.help}>
         {isHost
-          ? 'Donne le code aux autres pour qu\'ils rejoignent. Tu lances quand tout le monde est là.'
+          ? 'Donne le code à tes amis !'
           : 'En attente que le chef lance la partie…'}
       </Text>
 
@@ -62,7 +62,8 @@ export default function OnlineLobbyScreen() {
               <Text style={styles.stepSign}>+</Text>
             </Pressable>
           </View>
-          <Text style={styles.help}>Max {MAX_MANCHES}.</Text>
+          <Text style={styles.help}>1 manche = 1 personne désignée par la roulette.</Text>
+          <Text style={styles.help}> Maximum de manches {MAX_MANCHES} possibles.</Text>
 
           <View style={{ height: spacing.xl }} />
           <Button
@@ -85,7 +86,7 @@ const styles = StyleSheet.create({
   back: { color: colors.textMuted, fontSize: 16, fontWeight: font.semibold },
   codePill: { alignItems: 'flex-end' },
   codeLabel: { color: colors.textFaint, fontSize: 10, fontWeight: font.bold, letterSpacing: 2 },
-  code: { color: colors.accent, fontSize: 26, fontWeight: font.black, letterSpacing: 6 },
+  code: { color: colors.primary, fontSize: 26, fontWeight: font.black, letterSpacing: 6 },
   status: { color: colors.warning, fontSize: 13, marginBottom: spacing.sm },
   h1: { color: colors.text, fontSize: 28, fontWeight: font.black },
   h2: { color: colors.text, fontSize: 20, fontWeight: font.bold, marginTop: spacing.xl, marginBottom: spacing.sm },

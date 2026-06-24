@@ -37,9 +37,9 @@ export default function LobbyScreen() {
       </View>
 
       <Text style={styles.h1}>Les joueurs</Text>
-      <Text style={styles.help}>
+{/*       <Text style={styles.help}>
         Ajoute tout le monde sur ce téléphone. Le 1ᵉʳ joueur est le chef 👑 (il règle les manches et peut exclure).
-      </Text>
+      </Text> */}
 
       <View style={styles.addRow}>
         <TextInput
@@ -65,7 +65,7 @@ export default function LobbyScreen() {
               <Text style={styles.playerIndex}>{i + 1}</Text>
               <Text style={styles.playerName} numberOfLines={1}>
                 {p.name}
-                {p.isChef ? '  👑' : ''}
+                {/* {p.isChef ? '  👑' : ''} */}
               </Text>
               <Pressable onPress={() => dispatch({ type: 'REMOVE_PLAYER', id: p.id })} hitSlop={10}>
                 <Text style={styles.kick}>✕</Text>
@@ -91,7 +91,8 @@ export default function LobbyScreen() {
           <Text style={styles.stepSign}>+</Text>
         </Pressable>
       </View>
-      <Text style={styles.help}>1 manche = 1 personne désignée par la roulette. Max {MAX_MANCHES}.</Text>
+      <Text style={styles.help}>1 manche = 1 personne désignée par la roulette.</Text>
+      <Text style={styles.help}> Maximum de manches {MAX_MANCHES} possibles.</Text>
 
       <View style={{ height: spacing.xl }} />
       <Button
