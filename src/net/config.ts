@@ -24,7 +24,11 @@ function deriveFromMetro(): string {
   return '';
 }
 
-export const DETECTED_DEFAULT = process.env.EXPO_PUBLIC_GAME_SERVER || deriveFromMetro();
+// Serveur cloud par défaut (Render) : utilisé en BUILD quand il n'y a ni saisie
+// in-app, ni variable d'env, ni IP Metro. Permet à l'APK de marcher direct.
+const PROD_SERVER = 'https://aov-game-server.onrender.com';
+
+export const DETECTED_DEFAULT = process.env.EXPO_PUBLIC_GAME_SERVER || deriveFromMetro() || PROD_SERVER;
 
 // Adresse saisie dans l'app (prioritaire). Chargée au démarrage via loadGameServer().
 let override = '';
