@@ -72,12 +72,12 @@ export default function OnlineEntryScreen({ onBack }: { onBack: () => void }) {
           <Text style={styles.sub}>Plusieurs téléphones pour une même partie.</Text>
         </View>
 
-        <Pressable onPress={() => setEditingServer(true)} style={styles.serverRow}>
+{/*         <Pressable onPress={() => setEditingServer(true)} style={styles.serverRow}>
           <Text style={styles.serverText} numberOfLines={1}>
             Serveur : {serverUrl}
           </Text>
           <Text style={styles.serverEdit}>Modifier</Text>
-        </Pressable>
+        </Pressable> */}
 
         <Text style={styles.label}>Ton pseudo</Text>
         <TextInput
