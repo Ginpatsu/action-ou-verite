@@ -1,11 +1,19 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import AppLogo from '../components/AppLogo';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
 import { colors, font, spacing } from '../theme';
 
-export default function MenuScreen({ onLocal, onOnline }: { onLocal: () => void; onOnline: () => void }) {
+export default function MenuScreen({
+  onLocal,
+  onOnline,
+  onTerms,
+}: {
+  onLocal: () => void;
+  onOnline: () => void;
+  onTerms: () => void;
+}) {
   return (
     <Screen center>
       <View style={styles.brand}>
@@ -22,6 +30,9 @@ export default function MenuScreen({ onLocal, onOnline }: { onLocal: () => void;
         <Button label="Partie en ligne" variant="accent" onPress={onOnline} />
       </View>
 
+      <Pressable onPress={onTerms} hitSlop={8}>
+        <Text style={styles.footer}>Conditions d'utilisation</Text>
+      </Pressable>
     </Screen>
   );
 }

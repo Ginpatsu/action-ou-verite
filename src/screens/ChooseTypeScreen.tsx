@@ -12,7 +12,6 @@ export default function ChooseTypeScreen() {
     <Screen center>
       <Text style={styles.kicker}>AU TOUR DE</Text>
       <Text style={styles.name}>{target?.name}</Text>
-      <Text style={styles.sub}>Choisis ton poison. Pas de retour en arrière.</Text>
 
       <View style={styles.choices}>
         <Pressable

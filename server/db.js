@@ -9,7 +9,12 @@ let pool = null;
 
 if (url) {
   const { Pool } = require('pg');
-  pool = new Pool({ connectionString: url });
+  // Les bases distantes (Neon, Supabase) exigent SSL ; en local (docker/localhost) non.
+  const isLocal = /@(db|localhost|127\.0\.0\.1)[:/]/.test(url);
+  pool = new Pool({
+    connectionString: url,
+    ssl: isLocal ? false : { rejectUnauthorized: false },
+  });
   pool.on('error', (e) => console.error('[db] pool error:', e.message));
 }
 

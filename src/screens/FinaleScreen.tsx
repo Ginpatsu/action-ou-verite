@@ -1,80 +1,46 @@
-import { FontAwesome5 } from '@expo/vector-icons';
-import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
-import { type SocialApp } from '../data/socialApps';
 import { useGame } from '../game/GameContext';
 import { useExit } from '../components/ExitContext';
-import type { SocialId } from '../types';
-import { detectInstalled, openSocial, sortByInstalled } from '../utils/social';
 import { colors, font, radius, spacing } from '../theme';
 
+// Écran de fin en mode LOCAL (un seul téléphone partagé). On NE détecte pas les
+// réseaux installés (le téléphone partagé n'est pas forcément celui du perdant) :
+// on demande simplement au perdant de donner son propre téléphone au gagnant.
 export default function FinaleScreen() {
   const { state, dispatch, playerById } = useGame();
   const exit = useExit();
-  const [installed, setInstalled] = useState<SocialId[] | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    detectInstalled().then((ids) => active && setInstalled(ids));
-    return () => {
-      active = false;
-    };
-  }, []);
-
   const winner = playerById(state.result?.winnerId);
   const loser = playerById(state.result?.loserId);
-
-  // On affiche TOUJOURS les 6 réseaux ; la détection ne sert qu'à les trier
-  // (installés en tête), pour ne jamais cacher un réseau réellement installé.
-  const apps = useMemo(() => sortByInstalled(installed ?? []), [installed]);
-
-  const pick = async (app: SocialApp) => {
-    const ok = await openSocial(app);
-    if (!ok) Alert.alert('Oups', `Impossible d'ouvrir ${app.label} sur ce téléphone.`);
-  };
 
   return (
     <Screen scroll>
       <Text style={styles.title}>FIN DE PARTIE</Text>
-      {state.result?.tie ? <Text style={styles.tie}>Égalité parfaite… le sort a tranché </Text> : null}
+      {state.result?.tie ? <Text style={styles.tie}>Égalité parfaite... le sort a tranché</Text> : null}
 
       <View style={[styles.podium, { borderColor: colors.gold }]}>
-        <View style={styles.podiumInfo}>
-          <Text style={styles.podiumLabel}>GAGNANT·E</Text>
-          <Text style={[styles.podiumName, { color: colors.gold }]}>{winner?.name}</Text>
-          <Text style={styles.podiumMalus}>{winner?.malus} malus - le moins puni</Text>
-        </View>
+        <Text style={styles.podiumLabel}>GAGNANT·E</Text>
+        <Text style={[styles.podiumName, { color: colors.gold }]}>{winner?.name}</Text>
+        <Text style={styles.podiumMalus}>{winner?.malus} malus - le moins puni</Text>
       </View>
 
       <View style={[styles.podium, { borderColor: colors.danger }]}>
-        <View style={styles.podiumInfo}>
-          <Text style={styles.podiumLabel}>PERDANT·E</Text>
-          <Text style={[styles.podiumName, { color: colors.danger }]}>{loser?.name}</Text>
-          <Text style={styles.podiumMalus}>{loser?.malus} malus - la sentence</Text>
-        </View>
+        <Text style={styles.podiumLabel}>PERDANT·E</Text>
+        <Text style={[styles.podiumName, { color: colors.danger }]}>{loser?.name}</Text>
+        <Text style={styles.podiumMalus}>{loser?.malus} malus - la sentence</Text>
       </View>
 
       <View style={styles.sentence}>
         <Text style={styles.sentenceLead}>
-          <Text style={{ color: colors.gold, fontWeight: font.black }}>{winner?.name}</Text>, prends le téléphone de{' '}
-          <Text style={{ color: colors.danger, fontWeight: font.black }}>{loser?.name}</Text>
+          <Text style={{ color: colors.danger, fontWeight: font.black }}>{loser?.name}</Text>, donne ton téléphone à{' '}
+          <Text style={{ color: colors.gold, fontWeight: font.black }}>{winner?.name}</Text>
         </Text>
-        <Text style={styles.sentenceSub}>Choisis le réseau, ouvre l'appli et écris ce que tu veux à sa place </Text>
+        <Text style={styles.sentenceSub}>
+          pour qu'il publie ce qu'il veut sur le réseau social de son choix.
+        </Text>
       </View>
-
-      <View style={styles.grid}>
-        {apps.map((app) => (
-          <Pressable key={app.id} style={styles.appBtn} onPress={() => pick(app)}>
-            <View style={[styles.appIcon, { backgroundColor: app.color }]}>
-              <FontAwesome5 name={app.icon as any} size={30} color={app.iconColor} />
-            </View>
-            <Text style={styles.appLabel}>{app.label}</Text>
-          </Pressable>
-        ))}
-      </View>
-      <Text style={styles.note}>Touche le réseau voulu pour l'ouvrir.</Text>
 
       <View style={{ height: spacing.xl }} />
       <Button label="Rejouer (mêmes joueurs)" variant="primary" onPress={() => dispatch({ type: 'PLAY_AGAIN' })} />
@@ -87,47 +53,11 @@ export default function FinaleScreen() {
 const styles = StyleSheet.create({
   title: { color: colors.text, fontSize: 34, fontWeight: font.black, textAlign: 'center', letterSpacing: 1 },
   tie: { color: colors.textMuted, textAlign: 'center', marginTop: spacing.xs, fontStyle: 'italic' },
-
-  podium: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 2,
-    padding: spacing.lg,
-    marginTop: spacing.lg,
-    gap: spacing.lg,
-  },
-  podiumEmoji: { fontSize: 42 },
-  podiumInfo: { flex: 1 },
+  podium: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 2, padding: spacing.lg, marginTop: spacing.lg },
   podiumLabel: { color: colors.textMuted, fontWeight: font.bold, letterSpacing: 2, fontSize: 11 },
   podiumName: { fontSize: 30, fontWeight: font.black },
   podiumMalus: { color: colors.textFaint, fontSize: 13, marginTop: 2 },
-
-  sentence: { marginTop: spacing.xl, alignItems: 'center' },
-  sentenceLead: { color: colors.text, fontSize: 19, fontWeight: font.semibold, textAlign: 'center', lineHeight: 26 },
-  sentenceSub: { color: colors.textMuted, fontSize: 14, textAlign: 'center', marginTop: spacing.sm, lineHeight: 20 },
-
-  loading: { alignItems: 'center', marginTop: spacing.xl, gap: spacing.sm },
-  loadingText: { color: colors.textMuted },
-
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: spacing.lg,
-    marginTop: spacing.xl,
-  },
-  appBtn: { alignItems: 'center', width: 84 },
-  appIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: radius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  appLabel: { color: colors.text, fontSize: 13, fontWeight: font.semibold, marginTop: 6 },
-  note: { color: colors.textFaint, fontSize: 12, textAlign: 'center', marginTop: spacing.lg, lineHeight: 18 },
+  sentence: { marginTop: spacing.xxl, alignItems: 'center' },
+  sentenceLead: { color: colors.text, fontSize: 20, fontWeight: font.semibold, textAlign: 'center', lineHeight: 28 },
+  sentenceSub: { color: colors.textMuted, fontSize: 15, textAlign: 'center', marginTop: spacing.sm, lineHeight: 21 },
 });

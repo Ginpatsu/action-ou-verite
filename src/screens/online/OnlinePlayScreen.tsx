@@ -53,7 +53,6 @@ export default function OnlinePlayScreen() {
           {amTarget ? (
             <>
               <Text style={styles.kicker}>C'EST TOI !</Text>
-              <Text style={styles.sub}>Choisis ton poison.</Text>
               <View style={styles.choices}>
                 <Pressable style={[styles.card, { backgroundColor: colors.primary }]} onPress={() => act({ type: 'CHOOSE_TYPE', dareType: 'action' })}>
                   <Text style={styles.cardLabel}>ACTION</Text>

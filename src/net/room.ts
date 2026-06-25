@@ -1,79 +1,78 @@
+import { io, type Socket } from 'socket.io-client';
 import type { GameState } from '../types';
 import type { OnlineAction } from '../game/onlineReducer';
 import { getGameServer } from './config';
 
 export type RoomStatus = 'connecting' | 'connected' | 'error' | 'closed';
 
-type Me = { id: string; name: string; isHost: boolean };
+// Paramètres de connexion. `code` est absent quand l'hôte CRÉE (le serveur le
+// génère), présent quand on REJOINT ou que l'hôte se reconnecte (rehost).
+type Params = { id: string; name: string; isHost: boolean; code?: string };
 
 type Handlers = {
-  onState?: (state: GameState) => void; // clients receive snapshots from the host
-  onHello?: (id: string, name: string) => void; // host: a client announced itself
-  onAction?: (id: string, action: OnlineAction) => void; // host: a client action
-  onLeave?: (id: string) => void; // host: a device disconnected
-  onStatus?: (status: RoomStatus) => void;
+  onStatus?: (s: RoomStatus) => void;
+  onState?: (state: GameState) => void; // clients : snapshot reçu de l'hôte
+  onHello?: (id: string, name: string) => void; // hôte : un joueur a rejoint
+  onAction?: (id: string, action: OnlineAction) => void; // hôte : action d'un client
+  onLeave?: (id: string) => void; // hôte : un joueur s'est déconnecté
+  onCode?: (code: string) => void; // hôte : code attribué par le serveur
+  onError?: (err: string) => void; // join : room introuvable / pleine
 };
 
 export type Room = {
   broadcastState: (state: GameState) => void;
-  sendHello: () => void;
   sendAction: (action: OnlineAction) => void;
   leave: () => void;
 };
 
-// Connects to the WebSocket relay (./server) for a given room code.
-// The server just forwards every message to the OTHER members of the room.
-export function joinRoom(code: string, me: Me, handlers: Handlers): Room {
-  const qs =
-    `room=${encodeURIComponent(code.toUpperCase())}` +
-    `&id=${encodeURIComponent(me.id)}` +
-    `&name=${encodeURIComponent(me.name)}`;
-  const ws = new WebSocket(`${getGameServer()}?${qs}`);
+// Ouvre une connexion Socket.io et câble les événements du jeu.
+// socket.io-client gère seul la reconnexion et le "cold start" (réveil du
+// serveur gratuit) : il réémet 'connect' une fois le serveur réveillé.
+export function connectRoom(params: Params, handlers: Handlers): Room {
+  const socket: Socket = io(getGameServer(), {
+    transports: ['websocket'],
+    reconnection: true,
+    reconnectionDelay: 1000,
+    timeout: 20000,
+  });
 
-  const send = (event: string, payload: unknown) => {
-    if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ event, payload }));
+  // À chaque (re)connexion : l'hôte crée/reprend son salon, le client rejoint.
+  const register = () => {
+    if (params.isHost && !params.code) {
+      socket.emit('create', { id: params.id, name: params.name }, (res: { code?: string; error?: string }) => {
+        if (res && res.code) {
+          params.code = res.code;
+          handlers.onCode?.(res.code);
+        } else {
+          handlers.onError?.((res && res.error) || 'create-failed');
+        }
+      });
+    } else if (params.isHost && params.code) {
+      socket.emit('rehost', { id: params.id, name: params.name, code: params.code });
+    } else {
+      socket.emit('join', { id: params.id, name: params.name, code: params.code }, (res: { ok?: boolean; error?: string }) => {
+        if (!res || !res.ok) handlers.onError?.((res && res.error) || 'join-failed');
+      });
+    }
   };
-  const sendHello = () => send('hello', { id: me.id, name: me.name });
 
-  ws.onopen = () => {
+  socket.on('connect', () => {
     handlers.onStatus?.('connected');
-    if (!me.isHost) sendHello();
-  };
-  ws.onerror = () => handlers.onStatus?.('error');
-  ws.onclose = () => handlers.onStatus?.('closed');
-  ws.onmessage = (ev) => {
-    let msg: { event?: string; payload?: any };
-    try {
-      msg = JSON.parse(typeof ev.data === 'string' ? ev.data : '');
-    } catch {
-      return;
-    }
-    switch (msg.event) {
-      case 'state':
-        handlers.onState?.(msg.payload.state as GameState);
-        break;
-      case 'hello':
-        handlers.onHello?.(msg.payload.id, msg.payload.name);
-        break;
-      case 'action':
-        handlers.onAction?.(msg.payload.id, msg.payload.action as OnlineAction);
-        break;
-      case 'leave':
-        handlers.onLeave?.(msg.payload.id);
-        break;
-    }
-  };
+    register();
+  });
+  socket.on('connect_error', () => handlers.onStatus?.('connecting')); // cold start : on réessaie
+  socket.on('disconnect', () => handlers.onStatus?.('closed'));
+  socket.on('state', (s: GameState) => handlers.onState?.(s));
+  socket.on('hello', (p: { id: string; name: string }) => handlers.onHello?.(p.id, p.name));
+  socket.on('action', (p: { id: string; action: OnlineAction }) => handlers.onAction?.(p.id, p.action));
+  socket.on('peer-left', (p: { id: string }) => handlers.onLeave?.(p.id));
 
   return {
-    broadcastState: (state) => send('state', { state }),
-    sendHello,
-    sendAction: (action) => send('action', { id: me.id, action }),
+    broadcastState: (state) => socket.emit('state', state),
+    sendAction: (action) => socket.emit('action', action),
     leave: () => {
-      try {
-        ws.close();
-      } catch {
-        // ignore
-      }
+      socket.removeAllListeners();
+      socket.disconnect();
     },
   };
 }

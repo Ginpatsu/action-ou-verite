@@ -1,0 +1,25 @@
+# Déploiement GRATUIT du serveur de jeu sur Render.com (Blueprint).
+#
+# 1. Pousse le repo sur GitHub.
+# 2. Render.com -> New -> Blueprint -> sélectionne ce repo (render.yaml est détecté).
+# 3. Dans l'onglet Environment du service, colle DATABASE_URL (Neon.tech ou Supabase).
+# 4. Déploie. L'URL publique sera du type https://aov-game-server.onrender.com
+#    -> à mettre dans l'app (écran "Partie en ligne" -> Modifier le serveur).
+#
+# NB plan gratuit : le service s'endort après ~15 min d'inactivité et met ~30-60 s
+# à se réveiller au 1er appel (l'app gère ce "cold start" avec un écran d'attente).
+#
+# Koyeb : équivalent — New App -> GitHub -> Node, build "npm install", run
+# "node server.js", port 8787 (ou $PORT), même variable DATABASE_URL.
+services:
+  - type: web
+    name: aov-game-server
+    runtime: node
+    rootDir: server
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false

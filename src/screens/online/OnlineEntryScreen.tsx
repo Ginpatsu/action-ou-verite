@@ -102,12 +102,12 @@ export default function OnlineEntryScreen({ onBack }: { onBack: () => void }) {
         <Text style={styles.label}>Code de la partie</Text>
         <TextInput
           value={code}
-          onChangeText={(t) => setCode(t.toUpperCase())}
-          placeholder="ABCD"
+          onChangeText={(t) => setCode(t.replace(/[^0-9]/g, ''))}
+          placeholder="1234"
           placeholderTextColor={colors.textFaint}
           style={[styles.input, styles.codeInput]}
           maxLength={4}
-          autoCapitalize="characters"
+          keyboardType="number-pad"
           autoCorrect={false}
         />
         <View style={{ height: spacing.lg }} />

@@ -5,6 +5,7 @@ import { ExitProvider } from './src/components/ExitContext';
 import { GameProvider, useGame } from './src/game/GameContext';
 import MenuScreen from './src/screens/MenuScreen';
 import OnlineApp from './src/online/OnlineApp';
+import TermsScreen from './src/screens/TermsScreen';
 
 import LobbyScreen from './src/screens/LobbyScreen';
 import TurnIntroScreen from './src/screens/TurnIntroScreen';
@@ -20,7 +21,7 @@ import JudgeScreen from './src/screens/JudgeScreen';
 import TurnResultScreen from './src/screens/TurnResultScreen';
 import FinaleScreen from './src/screens/FinaleScreen';
 
-type Mode = 'menu' | 'local' | 'online';
+type Mode = 'menu' | 'local' | 'online' | 'terms';
 
 function LocalRouter() {
   const { state } = useGame();
@@ -71,7 +72,14 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <StatusBar style="light" />
-      {mode === 'menu' && <MenuScreen onLocal={() => setMode('local')} onOnline={() => setMode('online')} />}
+      {mode === 'menu' && (
+        <MenuScreen
+          onLocal={() => setMode('local')}
+          onOnline={() => setMode('online')}
+          onTerms={() => setMode('terms')}
+        />
+      )}
+      {mode === 'terms' && <TermsScreen onBack={() => setMode('menu')} />}
       {mode === 'local' && <LocalApp onExit={() => setMode('menu')} />}
       {mode === 'online' && <OnlineApp onExit={() => setMode('menu')} />}
     </SafeAreaProvider>

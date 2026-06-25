@@ -1,28 +1,29 @@
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// ── Adresse du serveur de jeu (mode EN LIGNE) ────────────────────────────────
+// ── Adresse du serveur de jeu (Socket.io / Express) ──────────────────────────
 //
-// Le multijoueur parle à un serveur WebSocket (dossier ./server, lancé en Docker).
-// On résout son adresse dans cet ordre de priorité :
+// Résolution par ordre de priorité :
 //   1. Adresse saisie dans l'app (persistée) — indispensable pour les BUILDS,
 //      car un APK n'a pas de serveur Metro pour deviner l'IP.
 //   2. Variable d'env de build EXPO_PUBLIC_GAME_SERVER.
-//   3. IP détectée depuis Metro (la même que le QR code) — uniquement en DEV/LAN.
+//   3. IP détectée depuis Metro (la même que le QR code) — DEV / LAN uniquement.
+//
+// Le serveur écoute en HTTP(S) ; socket.io-client gère l'upgrade WebSocket.
+//   - LAN/Docker  : http://192.168.x.x:8787
+//   - Production  : https://mon-serveur.onrender.com
 
 const GAME_PORT = 8787;
 const STORE_KEY = 'aov.gameServer';
 
-// En DEV (Expo Go / dev client), hostUri ressemble à "192.168.1.20:8081".
 function deriveFromMetro(): string {
   const fromExpo = Constants.expoConfig?.hostUri;
   const fromGo = (Constants as unknown as { expoGoConfig?: { hostUri?: string } }).expoGoConfig?.hostUri;
   const host = (fromExpo || fromGo || '').split(':')[0];
-  if (host && /^\d+\.\d+\.\d+\.\d+$/.test(host)) return `ws://${host}:${GAME_PORT}`;
+  if (host && /^\d+\.\d+\.\d+\.\d+$/.test(host)) return `http://${host}:${GAME_PORT}`;
   return '';
 }
 
-// Défaut (sans saisie manuelle) : env de build, sinon IP Metro.
 export const DETECTED_DEFAULT = process.env.EXPO_PUBLIC_GAME_SERVER || deriveFromMetro();
 
 // Adresse saisie dans l'app (prioritaire). Chargée au démarrage via loadGameServer().
@@ -40,13 +41,14 @@ export function gameServerConfigured(): boolean {
   return getGameServer().length > 0;
 }
 
-// Accepte une IP ("192.168.1.20"), un host, "host:port" ou une URL ws complète.
-// Normalise vers ws://host:8787.
+// Accepte une IP ("192.168.1.20"), "host:port", ou une URL http(s)/ws(s).
+// Normalise vers http://host:8787 si aucun schéma n'est fourni.
 export function normalizeServer(input: string): string {
   const s = input.trim();
   if (!s) return '';
-  if (/^wss?:\/\//i.test(s)) return s;
-  return `ws://${s.includes(':') ? s : `${s}:${GAME_PORT}`}`;
+  if (/^https?:\/\//i.test(s)) return s.replace(/\/+$/, '');
+  if (/^wss?:\/\//i.test(s)) return s.replace(/^ws/i, 'http').replace(/\/+$/, '');
+  return `http://${s.includes(':') ? s : `${s}:${GAME_PORT}`}`;
 }
 
 export async function setGameServer(input: string): Promise<string> {

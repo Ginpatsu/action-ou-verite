@@ -24,39 +24,48 @@ npx expo start            # puis scanner le QR code avec Expo Go
 
 ## Mode en ligne (multijoueur, plusieurs téléphones)
 
-Le multijoueur passe par un **petit serveur WebSocket** que tu héberges toi-même
-en **Docker** sur ton PC (dossier [`server/`](server/)). C'est un simple relais :
-l'hôte (le créateur de la partie) fait autorité, le serveur transmet juste les
-messages aux autres joueurs de la room.
+Le multijoueur passe par un serveur **Node.js + Express + Socket.io** (dossier
+[`server/`](server/)) avec **PostgreSQL**. C'est un relais : l'**hôte** (créateur
+de la partie) fait autorité, le serveur gère les salons et relaie les messages.
+Le serveur **génère un code à 4 chiffres** unique à la création.
 
-**1. Lancer le serveur (une fois) :**
-
-```bash
-docker compose up -d --build      # serveur sur le port 8787
-# vérifie : ouvre http://localhost:8787  → "serveur de jeu OK"
-```
-
-**2. Lancer l'app et tester à plusieurs :**
+### A. Développement local (même Wi-Fi)
 
 ```bash
-npx expo start                    # mode LAN (par défaut)
+docker compose up -d --build      # serveur Socket.io + Postgres (port 8787)
+npx expo start                    # mode LAN
 ```
 
-- Chaque joueur installe **Expo Go** et **scanne le même QR code**.
-- ⚠️ **Tout le monde sur le MÊME Wi-Fi que le PC.** L'app détecte alors l'IP du
-  PC automatiquement (la même que Metro) et parle au serveur sur `:8787` —
-  **aucune config**.
-- Un joueur **crée une partie** → **code à 4 lettres** ; les autres **rejoignent**
-  avec ce code. Chaque téléphone n'affiche que ce qui le concerne. La sentence
-  finale se joue **sur le téléphone du perdant**.
+- Chaque joueur installe **Expo Go** et **scanne le même QR**.
+- Tout le monde sur le **MÊME Wi-Fi que le PC** → l'app détecte l'IP du PC
+  automatiquement (`http://IP:8787`). Un joueur **crée** (code à 4 chiffres), les
+  autres **rejoignent**. La sentence finale se joue sur le téléphone du perdant.
 
-> Réseaux différents / 4G : utilise `npx expo start --tunnel` **et** expose le
-> port 8787 (puis `EXPO_PUBLIC_GAME_SERVER=ws://TON_IP_PUBLIQUE:8787`). Pour de
-> simples tests, reste en Wi-Fi commun.
->
-> Le mode **local** marche sans rien lancer.
+### B. Déploiement gratuit (pour les builds / hors Wi-Fi)
 
-Test rapide du relais sans Docker : `cd server && npm install && node smoke.js`.
+Un APK n'a pas de serveur Metro pour deviner l'IP : il faut un serveur public.
+100 % gratuit :
+
+1. **Base PostgreSQL** : crée une base sur [Neon.tech](https://neon.tech) ou
+   [Supabase](https://supabase.com) → copie la *connection string*.
+2. **Serveur** : sur [Render.com](https://render.com) → New → **Blueprint** (le
+   [`render.yaml`](render.yaml) est détecté), ou Koyeb. Mets la variable
+   `DATABASE_URL` (l'URL Postgres). Tu obtiens une URL `https://xxx.onrender.com`.
+3. **Dans l'app** : écran *Partie en ligne* → **Modifier** le serveur → colle
+   `https://xxx.onrender.com`. C'est mémorisé (persisté), pas besoin de rebuild
+   pour en changer.
+
+> **Cold start** : le plan gratuit endort le serveur après ~15 min ; le 1er appel
+> met ~30-60 s à le réveiller. L'app affiche un écran d'attente pendant ce temps.
+
+### Config de l'URL du serveur
+
+Ordre de priorité (voir [`src/net/config.ts`](src/net/config.ts)) :
+1. adresse saisie dans l'app (persistée) ;
+2. variable d'env de build `EXPO_PUBLIC_GAME_SERVER` (ex : `https://xxx.onrender.com`) ;
+3. IP auto-détectée depuis Metro (dev/LAN).
+
+Test rapide du serveur sans Docker : `cd server && npm install && node smoke.js`.
 
 ## Base de données (Postgres)
 
@@ -81,7 +90,23 @@ docker compose exec db psql -U aov -d aov -c "select * from accounts;"
 docker compose exec db psql -U aov -d aov -c "select code, winner_pseudo, loser_pseudo, expires_at from games;"
 ```
 
-Schéma : [`server/db/init.sql`](server/db/init.sql). Test d'enregistrement : `cd server && node sim-finale.js`.
+Schéma : [`server/db/init.sql`](server/db/init.sql). En production (Neon/Supabase),
+le serveur active SSL automatiquement.
+
+## Sécurité
+
+- **Serveur** : taille des messages plafonnée (64 Ko), **limite de débit** par
+  socket (anti-flood), **max 12 joueurs/salon**, validation de l'état avant relai.
+  Seul l'**hôte** peut diffuser l'état (`state`) — un client ne peut pas détourner
+  la partie. Pseudos/identifiants nettoyés et bornés.
+- **Base** : requêtes **paramétrées** (pas d'injection SQL) ; SSL en production ;
+  identifiants Postgres du `docker-compose.yml` = **dev local uniquement**.
+- **App** : aucun secret embarqué ; les textes sont rendus en `<Text>` (pas
+  d'exécution → pas de XSS) ; longueurs des saisies limitées.
+- **CGU** : page de Conditions Générales d'Utilisation accessible depuis le menu
+  (jeu 18+, l'app ne publie rien automatiquement, l'utilisateur est responsable).
+- **Production** : utilise une URL **`https://`** (TLS) et change les identifiants
+  Postgres par défaut.
 
 > ⚠️ Identifiants Postgres du `docker-compose.yml` = **dev local** (BDD sur
 > `localhost:5432`, non exposée à internet). À changer pour un vrai serveur.
