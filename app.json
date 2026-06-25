@@ -27,22 +27,40 @@
           "tiktok",
           "snssdk1233",
           "snapchat",
+          "discord",
+          "twitter",
+          "twitterauth",
+          "instagram",
+          "instagram-stories",
+          "fb",
+          "facebook",
+          "tiktok",
+          "snssdk1233",
+          "snapchat",
           "discord"
-        ]
-      }
+        ],
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "bundleIdentifier": "com.anonymous.actionouverite"
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E8322D",
         "foregroundImage": "./assets/android-icon-foreground.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.actionouverite"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "./plugins/withAndroidSocialQueries"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "61b62514-cffc-4227-ace6-5842cb27fd27"
+      }
+    }
   }
 }
