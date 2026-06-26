@@ -7,14 +7,14 @@ import ResultSound from '../../components/ResultSound';
 import Roulette from '../../components/Roulette';
 import Screen from '../../components/Screen';
 import { useOnline } from '../../online/OnlineContext';
-import { stopMusic } from '../../utils/sound';
+import { duckMusic } from '../../utils/sound';
 import { colors, font, radius, spacing } from '../../theme';
 
 export default function OnlinePlayScreen() {
   const { state, session, myId, isHost, act, leave, playerById } = useOnline();
-  // En jeu : on coupe la musique de fond (réservée à l'accueil et aux salons).
+  // En jeu : la musique de fond continue mais baisse de 20 % (fond sonore).
   useEffect(() => {
-    stopMusic();
+    duckMusic();
   }, []);
   if (!state || !state.turn) {
     // turnIntro has no turn yet

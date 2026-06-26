@@ -6,14 +6,14 @@ import Podium from '../components/Podium';
 import Screen from '../components/Screen';
 import { useGame } from '../game/GameContext';
 import { useExit } from '../components/ExitContext';
-import { stopMusic } from '../utils/sound';
+import { duckMusic } from '../utils/sound';
 import { colors, font, spacing } from '../theme';
 
 export default function TurnIntroScreen() {
   const { state, dispatch } = useGame();
   const exit = useExit();
   useEffect(() => {
-    stopMusic();
+    duckMusic();
   }, []);
   return (
     <Screen scroll>

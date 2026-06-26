@@ -19,7 +19,10 @@ const SOURCES = {
 type Sfx = keyof typeof SOURCES;
 
 // Musique de fond (accueil + salons), jouée en boucle à bas volume.
+// Pendant le jeu elle continue mais baisse de 20 % (fond sonore discret).
 const MUSIC_SOURCE = require('../../assets/music/verite-frappe-fort.mp3');
+const MUSIC_VOL = 0.32; // volume "plein" (accueil/salons)
+const MUSIC_VOL_DUCKED = MUSIC_VOL * 0.8; // -20 % en jeu
 
 let enabled = true;
 let ready = false;
@@ -52,7 +55,7 @@ export async function initSound(): Promise<void> {
     if (players.buzz) players.buzz.volume = 0.55;
     music = createAudioPlayer(MUSIC_SOURCE);
     music.loop = true;
-    music.volume = 0.32;
+    music.volume = MUSIC_VOL;
     ready = true;
     // Si un écran a déjà demandé la musique avant la fin du chargement.
     if (musicWanted && enabled) {
@@ -116,6 +119,17 @@ export function startMusic(): void {
   musicWanted = true;
   if (!enabled || !ready || !music) return;
   try {
+    music.volume = MUSIC_VOL; // volume plein (et "dé-duck" si on revenait du jeu)
+    if (!music.playing) music.play();
+  } catch {}
+}
+
+// Pendant le jeu : la musique CONTINUE mais baisse de 20 % (fond sonore).
+export function duckMusic(): void {
+  musicWanted = true;
+  if (!enabled || !ready || !music) return;
+  try {
+    music.volume = MUSIC_VOL_DUCKED;
     if (!music.playing) music.play();
   } catch {}
 }
