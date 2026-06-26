@@ -18,10 +18,16 @@ const SOURCES = {
 
 type Sfx = keyof typeof SOURCES;
 
+// Musique de fond (accueil + salons), jouée en boucle à bas volume.
+const MUSIC_SOURCE = require('../../assets/music/verite-frappe-fort.mp3');
+
 let enabled = true;
 let ready = false;
 const players: Partial<Record<Sfx, AudioPlayer>> = {};
 const listeners = new Set<(v: boolean) => void>();
+
+let music: AudioPlayer | null = null;
+let musicWanted = false; // un écran "accueil/salon" souhaite la musique
 
 // À appeler une fois au démarrage de l'app.
 export async function initSound(): Promise<void> {
@@ -44,7 +50,16 @@ export async function initSound(): Promise<void> {
     if (players.click) players.click.volume = 0.28; // discret : joué à chaque bouton
     if (players.confirm) players.confirm.volume = 0.6;
     if (players.buzz) players.buzz.volume = 0.55;
+    music = createAudioPlayer(MUSIC_SOURCE);
+    music.loop = true;
+    music.volume = 0.32;
     ready = true;
+    // Si un écran a déjà demandé la musique avant la fin du chargement.
+    if (musicWanted && enabled) {
+      try {
+        music.play();
+      } catch {}
+    }
   } catch {
     // Audio indisponible : on garde des no-ops silencieux.
   }
@@ -57,6 +72,11 @@ export function isSoundEnabled(): boolean {
 export async function setSoundEnabled(value: boolean): Promise<void> {
   enabled = value;
   listeners.forEach((l) => l(value));
+  // Le bouton muet coupe aussi la musique de fond (et la reprend si réactivé).
+  try {
+    if (!value) music?.pause();
+    else if (musicWanted) music?.play();
+  } catch {}
   try {
     await AsyncStorage.setItem(STORE_KEY, value ? '1' : '0');
   } catch {}
@@ -88,3 +108,22 @@ export const playWin = (): void => play('win');
 export const playClick = (): void => play('click');
 export const playConfirm = (): void => play('confirm');
 export const playBuzz = (): void => play('buzz');
+
+// Musique de fond. startMusic() est idempotent (ne redémarre pas si déjà en
+// cours), donc passer accueil -> salon ne coupe pas la musique. Les écrans de
+// jeu appellent stopMusic().
+export function startMusic(): void {
+  musicWanted = true;
+  if (!enabled || !ready || !music) return;
+  try {
+    if (!music.playing) music.play();
+  } catch {}
+}
+
+export function stopMusic(): void {
+  musicWanted = false;
+  try {
+    music?.pause();
+    music?.seekTo(0);
+  } catch {}
+}

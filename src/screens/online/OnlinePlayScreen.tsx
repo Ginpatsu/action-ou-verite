@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import Button from '../../components/Button';
 import GameHeader from '../../components/GameHeader';
@@ -7,10 +7,15 @@ import ResultSound from '../../components/ResultSound';
 import Roulette from '../../components/Roulette';
 import Screen from '../../components/Screen';
 import { useOnline } from '../../online/OnlineContext';
+import { stopMusic } from '../../utils/sound';
 import { colors, font, radius, spacing } from '../../theme';
 
 export default function OnlinePlayScreen() {
   const { state, session, myId, isHost, act, leave, playerById } = useOnline();
+  // En jeu : on coupe la musique de fond (réservée à l'accueil et aux salons).
+  useEffect(() => {
+    stopMusic();
+  }, []);
   if (!state || !state.turn) {
     // turnIntro has no turn yet
     return <TurnIntro />;

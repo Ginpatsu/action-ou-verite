@@ -5,6 +5,7 @@ import Button from '../../components/Button';
 import Screen from '../../components/Screen';
 import { useOnline } from '../../online/OnlineContext';
 import { getSavedPseudo } from '../../utils/identity';
+import { startMusic } from '../../utils/sound';
 import { colors, font, radius, spacing } from '../../theme';
 
 // Écran d'entrée du mode en ligne : configurer le serveur (1re fois / build),
@@ -20,6 +21,7 @@ export default function OnlineEntryScreen({ onBack }: { onBack: () => void }) {
 
   useEffect(() => {
     getSavedPseudo().then((saved) => saved && setName(saved));
+    startMusic();
   }, []);
 
   // Quand le clavier s'ouvre alors que le champ "code" est actif, on défile en

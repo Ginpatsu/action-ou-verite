@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
 import { MAX_MANCHES, MAX_PLAYERS, MIN_PLAYERS, useGame } from '../game/GameContext';
 import { useExit } from '../components/ExitContext';
+import { startMusic } from '../utils/sound';
 import { colors, font, radius, spacing } from '../theme';
 
 // Salon de la partie LOCALE (pass-the-phone) : on ajoute les joueurs sur ce
@@ -16,6 +17,10 @@ export default function LobbyScreen() {
   const canStart = state.players.length >= MIN_PLAYERS;
   const full = state.players.length >= MAX_PLAYERS;
   const duplicate = state.players.some((p) => p.name.trim().toLowerCase() === name.trim().toLowerCase());
+
+  useEffect(() => {
+    startMusic();
+  }, []);
 
   const add = () => {
     const n = name.trim();

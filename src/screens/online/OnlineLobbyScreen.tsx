@@ -1,13 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Button from '../../components/Button';
 import Screen from '../../components/Screen';
 import { MAX_MANCHES, MIN_PLAYERS_ONLINE } from '../../game/onlineReducer';
 import { useOnline } from '../../online/OnlineContext';
+import { startMusic } from '../../utils/sound';
 import { colors, font, radius, spacing } from '../../theme';
 
 export default function OnlineLobbyScreen() {
   const { state, session, isHost, myId, act, leave, status } = useOnline();
+  useEffect(() => {
+    startMusic();
+  }, []);
   if (!state || !session) return null;
   const canStart = state.players.length >= MIN_PLAYERS_ONLINE;
 

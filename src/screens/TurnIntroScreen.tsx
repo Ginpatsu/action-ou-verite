@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Button from '../components/Button';
 import GameHeader from '../components/GameHeader';
@@ -6,11 +6,15 @@ import Podium from '../components/Podium';
 import Screen from '../components/Screen';
 import { useGame } from '../game/GameContext';
 import { useExit } from '../components/ExitContext';
+import { stopMusic } from '../utils/sound';
 import { colors, font, spacing } from '../theme';
 
 export default function TurnIntroScreen() {
   const { state, dispatch } = useGame();
   const exit = useExit();
+  useEffect(() => {
+    stopMusic();
+  }, []);
   return (
     <Screen scroll>
       <GameHeader manche={state.currentManche} total={state.totalManches} onQuit={exit} />

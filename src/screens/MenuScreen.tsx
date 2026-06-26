@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import AppLogo from '../components/AppLogo';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
 import SoundToggle from '../components/SoundToggle';
+import { startMusic } from '../utils/sound';
 import { colors, font, spacing } from '../theme';
 
 export default function MenuScreen({
@@ -15,6 +16,10 @@ export default function MenuScreen({
   onOnline: () => void;
   onTerms: () => void;
 }) {
+  useEffect(() => {
+    startMusic();
+  }, []);
+
   return (
     <Screen center>
       <SoundToggle style={styles.soundToggle} />
