@@ -18,18 +18,23 @@ export default function OnlineEntryScreen({ onBack }: { onBack: () => void }) {
   const [serverInput, setServerInput] = useState('');
   const scrollRef = useRef<ScrollView>(null);
   const codeFocused = useRef(false);
+  const codeY = useRef(0); // position verticale du champ code dans la page
+
+  // Fait remonter le champ code juste sous le haut de la zone visible, donc
+  // au-dessus du clavier (peu importe la hauteur du clavier).
+  const scrollToCode = () => scrollRef.current?.scrollTo({ y: Math.max(0, codeY.current - 90), animated: true });
 
   useEffect(() => {
     getSavedPseudo().then((saved) => saved && setName(saved));
     startMusic();
   }, []);
 
-  // Quand le clavier s'ouvre alors que le champ "code" est actif, on défile en
-  // bas pour le faire remonter au-dessus du clavier (sinon il reste caché). On
-  // attend le keyboardDidShow pour que la fenêtre soit déjà redimensionnée.
+  // Quand le clavier s'ouvre alors que le champ "code" est actif, on défile vers
+  // lui pour qu'il (et ce qu'on tape) reste visible. On attend keyboardDidShow
+  // pour que la fenêtre soit déjà redimensionnée.
   useEffect(() => {
     const sub = Keyboard.addListener('keyboardDidShow', () => {
-      if (codeFocused.current) scrollRef.current?.scrollToEnd({ animated: true });
+      if (codeFocused.current) scrollToCode();
     });
     return () => sub.remove();
   }, []);
@@ -122,9 +127,12 @@ export default function OnlineEntryScreen({ onBack }: { onBack: () => void }) {
           maxLength={4}
           keyboardType="number-pad"
           autoCorrect={false}
+          onLayout={(e) => {
+            codeY.current = e.nativeEvent.layout.y;
+          }}
           onFocus={() => {
             codeFocused.current = true;
-            setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 250);
+            setTimeout(scrollToCode, 250);
           }}
           onBlur={() => {
             codeFocused.current = false;
