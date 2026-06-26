@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import Button from '../../components/Button';
+import GameHeader from '../../components/GameHeader';
+import Podium from '../../components/Podium';
+import ResultSound from '../../components/ResultSound';
 import Roulette from '../../components/Roulette';
-import ScoreList from '../../components/ScoreList';
 import Screen from '../../components/Screen';
 import { useOnline } from '../../online/OnlineContext';
 import { colors, font, radius, spacing } from '../../theme';
 
 export default function OnlinePlayScreen() {
-  const { state, myId, isHost, act, leave, playerById } = useOnline();
+  const { state, session, myId, isHost, act, leave, playerById } = useOnline();
   if (!state || !state.turn) {
     // turnIntro has no turn yet
     return <TurnIntro />;
@@ -23,16 +25,12 @@ export default function OnlinePlayScreen() {
   const accent = isAction ? colors.primary : colors.accent;
   const names = state.players.map((p) => p.name);
   const idx = (id: string | null) => Math.max(0, state.players.findIndex((p) => p.id === id));
+  // Roue "qui écrit" : on exclut la personne déjà désignée (elle n'écrit jamais
+  // pour elle-même), pour ne pas réafficher son nom à la 2e roulette.
+  const writerPool = state.players.filter((p) => p.id !== turn.targetId);
 
   const Header = (
-    <View style={styles.header}>
-      <Text style={styles.manche}>
-        MANCHE {state.currentManche}/{state.totalManches}
-      </Text>
-      <Pressable onPress={leave} hitSlop={12}>
-        <Text style={styles.quit}>Quitter</Text>
-      </Pressable>
-    </View>
+    <GameHeader manche={state.currentManche} total={state.totalManches} code={session?.code} onQuit={leave} />
   );
 
   switch (state.phase) {
@@ -74,7 +72,12 @@ export default function OnlinePlayScreen() {
           {Header}
           <Text style={[styles.kicker, { color: colors.accent }]}>QUI ÉCRIT L'ÉPREUVE ?</Text>
           <View style={{ height: spacing.lg }} />
-          <Roulette key={`w${turn.manche}`} items={names} winnerIndex={idx(turn.writerId)} accent={colors.accent} />
+          <Roulette
+            key={`w${turn.manche}`}
+            items={writerPool.map((p) => p.name)}
+            winnerIndex={Math.max(0, writerPool.findIndex((p) => p.id === turn.writerId))}
+            accent={colors.accent}
+          />
         </Screen>
       );
 
@@ -119,7 +122,8 @@ export default function OnlinePlayScreen() {
 
     case 'turnResult':
       return (
-        <Screen>
+        <Screen scroll>
+          <ResultSound refused={!!turn.refused} />
           {Header}
           <View style={styles.center}>
             <Text style={styles.emoji}>{turn.refused ? '' : ''}</Text>
@@ -128,7 +132,8 @@ export default function OnlinePlayScreen() {
               {turn.refused ? `${target?.name} s'est dégonflé·e.` : `${target?.name} a assuré.`}
             </Text>
           </View>
-          <ScoreList players={state.players} title="Classement des malus" highlightId={myId} />
+          <Text style={styles.rankTitle}>CLASSEMENT</Text>
+          <Podium players={state.players} highlightId={myId} celebrate={false} showRest />
           <View style={{ height: spacing.lg }} />
           {isHost ? (
             <Button
@@ -148,31 +153,20 @@ export default function OnlinePlayScreen() {
 }
 
 function TurnIntro() {
-  const { state, isHost, act, leave, myId } = useOnline();
+  const { state, session, act, leave, myId } = useOnline();
   if (!state) return null;
   return (
-    <Screen>
-      <View style={styles.header}>
-        <Text style={styles.manche}>
-          MANCHE {state.currentManche}/{state.totalManches}
-        </Text>
-        <Pressable onPress={leave} hitSlop={12}>
-          <Text style={styles.quit}>Quitter</Text>
-        </Pressable>
-      </View>
-      <View style={styles.center}>
+    <Screen scroll>
+      <GameHeader manche={state.currentManche} total={state.totalManches} code={session?.code} onQuit={leave} />
+      <View style={styles.intro}>
         <Text style={styles.h1}>Qui va trembler ?</Text>
-        {isHost ? (
-          <>
-            <Text style={styles.sub}>À toi de lancer la roulette.</Text>
-            <View style={{ height: spacing.xl }} />
-            <Button label="Tourner la roulette" onPress={() => act({ type: 'SPIN_TARGET' })} />
-          </>
-        ) : (
-          <Text style={styles.sub}>Le chef lance la roulette…</Text>
-        )}
+        <Text style={styles.sub}>N'importe qui peut lancer la roulette !</Text>
+        <View style={{ height: spacing.xl }} />
+        <Button label="Tourner la roulette" onPress={() => act({ type: 'SPIN_TARGET' })} />
       </View>
-      <ScoreList players={state.players} title="Malus" highlightId={myId} />
+      <View style={{ height: spacing.xl }} />
+      <Text style={styles.rankTitle}>CLASSEMENT</Text>
+      <Podium players={state.players} highlightId={myId} celebrate={false} showRest />
     </Screen>
   );
 }
@@ -202,7 +196,7 @@ function WriteDareView({
   return (
     <Screen scroll>
       {header}
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <>
         <Text style={styles.kicker}>À TOI D'ÉCRIRE</Text>
         <Text style={styles.h1}>
           Une <Text style={{ color: isAction ? colors.primary : colors.accent }}>{isAction ? 'ACTION' : 'VÉRITÉ'}</Text>
@@ -222,17 +216,16 @@ function WriteDareView({
         <Text style={styles.count}>{text.length}/240</Text>
         <View style={{ height: spacing.lg }} />
         <Button label="Envoyer l'épreuve" variant={isAction ? 'primary' : 'accent'} disabled={!text.trim()} onPress={() => onSubmit(text)} />
-      </KeyboardAvoidingView>
+      </>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', alignSelf: 'stretch', marginBottom: spacing.md },
-  manche: { color: colors.accent, fontWeight: font.black, letterSpacing: 2, fontSize: 14 },
-  quit: { color: colors.textFaint, fontSize: 13, fontWeight: font.semibold },
   kicker: { color: colors.textMuted, fontWeight: font.bold, letterSpacing: 3, textAlign: 'center' },
+  rankTitle: { color: colors.textMuted, fontWeight: font.bold, letterSpacing: 2, fontSize: 12, marginBottom: spacing.md, textAlign: 'center' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  intro: { alignItems: 'center', justifyContent: 'center', paddingVertical: spacing.xxl },
   emoji: { fontSize: 56, textAlign: 'center' },
   h1: { color: colors.text, fontSize: 32, fontWeight: font.black, textAlign: 'center', marginTop: spacing.xs },
   sub: { color: colors.textMuted, fontSize: 16, textAlign: 'center', marginTop: spacing.sm },

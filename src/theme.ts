@@ -14,7 +14,9 @@ export const colors = {
   success: '#2EE6A6',
   danger: '#FF3B5C',
   warning: '#FFB020',
-  gold: '#FFD23F', // winner
+  gold: '#FFD23F', // winner / 1re place
+  silver: '#C9CAD1', // 2e place
+  bronze: '#CD7F45', // 3e place
 
   text: '#F5F5F7',
   textMuted: '#9A9AA8',

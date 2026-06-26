@@ -1,7 +1,9 @@
-import React from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, ViewStyle } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import React, { useRef } from 'react';
+import { ActivityIndicator, Animated, Platform, Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { colors, font, radius, spacing } from '../theme';
 import { tap } from '../utils/haptics';
+import { playClick } from '../utils/sound';
 
 type Variant = 'primary' | 'accent' | 'success' | 'danger' | 'outline' | 'ghost' | 'gold';
 type Size = 'md' | 'lg';
@@ -13,6 +15,9 @@ type Props = {
   size?: Size;
   disabled?: boolean;
   loading?: boolean;
+  icon?: keyof typeof Ionicons.glyphMap;
+  iconPosition?: 'left' | 'right';
+  block?: boolean; // true (défaut) = pleine largeur du conteneur ; false = largeur du contenu
   style?: ViewStyle;
 };
 
@@ -36,47 +41,83 @@ const FG: Record<Variant, string> = {
   ghost: colors.textMuted,
 };
 
-export default function Button({ label, onPress, variant = 'primary', size = 'lg', disabled, loading, style }: Props) {
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+export default function Button({
+  label,
+  onPress,
+  variant = 'primary',
+  size = 'lg',
+  disabled,
+  loading,
+  icon,
+  iconPosition = 'left',
+  block = true,
+  style,
+}: Props) {
+  const scale = useRef(new Animated.Value(1)).current;
   const isFlat = variant === 'outline' || variant === 'ghost';
+  const inactive = disabled || loading;
+  const fg = FG[variant];
+
+  const press = (to: number) =>
+    Animated.spring(scale, { toValue: to, useNativeDriver: true, friction: 6, tension: 220 }).start();
+
   return (
-    <Pressable
+    <AnimatedPressable
       onPress={() => {
-        if (disabled || loading) return;
+        if (inactive) return;
         tap();
+        playClick();
         onPress();
       }}
-      disabled={disabled || loading}
-      style={({ pressed }) => [
+      onPressIn={() => !inactive && press(0.95)}
+      onPressOut={() => press(1)}
+      disabled={inactive}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: !!inactive, busy: !!loading }}
+      accessibilityLabel={label}
+      style={[
         styles.base,
         size === 'lg' ? styles.lg : styles.md,
-        { backgroundColor: BG[variant] },
+        block ? styles.block : styles.auto,
+        { backgroundColor: BG[variant], transform: [{ scale }] },
+        !isFlat && styles.shadow,
         variant === 'outline' && { borderWidth: 2, borderColor: colors.border },
-        (disabled || loading) && styles.disabled,
-        pressed && !disabled && styles.pressed,
+        inactive && styles.disabled,
         style,
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={FG[variant]} />
+        <ActivityIndicator color={fg} />
       ) : (
-        <Text style={[styles.label, size === 'lg' ? styles.labelLg : styles.labelMd, { color: FG[variant] }]} numberOfLines={1}>
-          {label}
-        </Text>
+        <View style={styles.content}>
+          {icon && iconPosition === 'left' ? <Ionicons name={icon} size={size === 'lg' ? 20 : 17} color={fg} /> : null}
+          <Text style={[styles.label, size === 'lg' ? styles.labelLg : styles.labelMd, { color: fg }]} numberOfLines={1}>
+            {label}
+          </Text>
+          {icon && iconPosition === 'right' ? <Ionicons name={icon} size={size === 'lg' ? 20 : 17} color={fg} /> : null}
+        </View>
       )}
-    </Pressable>
+    </AnimatedPressable>
   );
 }
 
 const styles = StyleSheet.create({
-  base: {
-    borderRadius: radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
+  base: { borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
+  block: { alignSelf: 'stretch' },
+  auto: { alignSelf: 'center' },
+  // Padding horizontal généreux : le texte ne colle plus aux bords.
+  lg: { paddingVertical: spacing.lg, paddingHorizontal: spacing.xxl, minHeight: 56 },
+  md: { paddingVertical: spacing.md, paddingHorizontal: spacing.xl, minHeight: 44 },
+  content: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
+  shadow: {
+    ...Platform.select({
+      ios: { shadowColor: colors.black, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
+      android: { elevation: 4 },
+    }),
   },
-  lg: { paddingVertical: spacing.lg + 2, paddingHorizontal: spacing.xl },
-  md: { paddingVertical: spacing.md, paddingHorizontal: spacing.lg },
   disabled: { opacity: 0.4 },
-  pressed: { opacity: 0.85, transform: [{ scale: 0.985 }] },
   label: { fontWeight: font.bold, letterSpacing: 0.3 },
   labelLg: { fontSize: 18 },
   labelMd: { fontSize: 15 },

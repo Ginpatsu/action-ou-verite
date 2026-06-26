@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import AppLogo from '../components/AppLogo';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
+import SoundToggle from '../components/SoundToggle';
 import { colors, font, spacing } from '../theme';
 
 export default function MenuScreen({
@@ -16,6 +17,7 @@ export default function MenuScreen({
 }) {
   return (
     <Screen center>
+      <SoundToggle style={styles.soundToggle} />
       <View style={styles.brand}>
         <AppLogo size={140} />
         <Text style={styles.title}>
@@ -38,6 +40,7 @@ export default function MenuScreen({
 }
 
 const styles = StyleSheet.create({
+  soundToggle: { position: 'absolute', top: spacing.lg, right: spacing.lg },
   brand: { alignItems: 'center', marginBottom: spacing.xl },
   title: { color: colors.text, fontSize: 30, fontWeight: font.black, letterSpacing: 1, marginTop: spacing.lg, textAlign: 'center' },
   ou: { color: colors.textMuted, fontSize: 22 },

@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useMemo, useReducer } from 'react';
 import type { DareType, GameState, Player } from '../types';
-import { computeResult, pickTarget, pickWriter, uid } from './logic';
+import { computeResult, pickTargetWeighted, pickWriter, pushRecent, uid } from './logic';
 
 export const MIN_PLAYERS = 2;
+export const MAX_PLAYERS = 12;
 export const MAX_MANCHES = 50;
 
 const initialState: GameState = {
@@ -50,6 +51,9 @@ function reducer(state: GameState, action: Action): GameState {
     case 'ADD_PLAYER': {
       const name = action.name.trim();
       if (!name) return state;
+      if (state.players.length >= MAX_PLAYERS) return state; // 12 joueurs max
+      // Pseudo unique (insensible à la casse).
+      if (state.players.some((p) => p.name.toLowerCase() === name.toLowerCase())) return state;
       const player: Player = {
         id: uid(),
         name,
@@ -70,14 +74,15 @@ function reducer(state: GameState, action: Action): GameState {
     case 'START_GAME': {
       if (state.players.length < MIN_PLAYERS) return state;
       const players = state.players.map((p) => ({ ...p, malus: 0 }));
-      return { ...state, players, currentManche: 1, turn: null, result: null, phase: 'turnIntro' };
+      return { ...state, players, currentManche: 1, turn: null, result: null, recentTargets: [], phase: 'turnIntro' };
     }
 
     case 'SPIN_TARGET': {
-      const targetId = pickTarget(state.players);
+      const targetId = pickTargetWeighted(state.players, state.recentTargets);
       return {
         ...state,
         phase: 'playerRoulette',
+        recentTargets: pushRecent(state.recentTargets, targetId, state.players.length),
         turn: { manche: state.currentManche, targetId, type: null, writerId: null, dare: null, refused: null },
       };
     }
@@ -123,14 +128,24 @@ function reducer(state: GameState, action: Action): GameState {
 
     case 'NEXT': {
       if (state.currentManche < state.totalManches) {
-        return { ...state, currentManche: state.currentManche + 1, turn: null, phase: 'turnIntro' };
+        // On enchaîne directement sur la roulette (plus d'écran intermédiaire).
+        const nextManche = state.currentManche + 1;
+        const recent = state.recentTargets ?? [];
+        const targetId = pickTargetWeighted(state.players, recent);
+        return {
+          ...state,
+          currentManche: nextManche,
+          recentTargets: pushRecent(recent, targetId, state.players.length),
+          turn: { manche: nextManche, targetId, type: null, writerId: null, dare: null, refused: null },
+          phase: 'playerRoulette',
+        };
       }
       return { ...state, result: computeResult(state.players), phase: 'finale' };
     }
 
     case 'PLAY_AGAIN': {
       const players = state.players.map((p) => ({ ...p, malus: 0 }));
-      return { ...state, players, currentManche: 1, turn: null, result: null, phase: 'turnIntro' };
+      return { ...state, players, currentManche: 1, turn: null, result: null, recentTargets: [], phase: 'turnIntro' };
     }
 
     default:

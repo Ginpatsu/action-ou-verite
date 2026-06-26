@@ -22,9 +22,9 @@ export type Turn = {
 };
 
 export type GameResult = {
-  loserId: string;
-  winnerId: string;
-  tie: boolean; // true when malus scores were all equal (no real loser)
+  winnerIds: string[]; // ex aequo en tête (malus minimum)
+  loserIds: string[]; // ex aequo en dernier (malus maximum) ; vide si égalité parfaite
+  tie: boolean; // true = tout le monde au même malus -> pas de perdant
 };
 
 export type Phase =
@@ -50,4 +50,9 @@ export type GameState = {
   currentManche: number;
   turn: Turn | null;
   result: GameResult | null;
+  // Ids des dernières personnes désignées (plus récent en dernier). Sert à la
+  // pondération de la roulette pour éviter de retomber tout de suite sur la même
+  // et mieux répartir les tirages sur plusieurs manches. Optionnel : les anciens
+  // états (resynchro multijoueur) peuvent ne pas le contenir.
+  recentTargets?: string[];
 };

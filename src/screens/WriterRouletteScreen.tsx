@@ -11,8 +11,11 @@ export default function WriterRouletteScreen() {
   const { state, dispatch, playerById } = useGame();
   const [done, setDone] = useState(false);
   const writer = playerById(state.turn?.writerId);
-  const names = state.players.map((p) => p.name);
-  const winnerIndex = Math.max(0, state.players.findIndex((p) => p.id === state.turn?.writerId));
+  // On exclut la personne déjà désignée : elle n'écrit jamais sa propre épreuve,
+  // donc son nom ne doit pas réapparaître sur cette 2e roulette.
+  const writerPool = state.players.filter((p) => p.id !== state.turn?.targetId);
+  const names = writerPool.map((p) => p.name);
+  const winnerIndex = Math.max(0, writerPool.findIndex((p) => p.id === state.turn?.writerId));
 
   return (
     <Screen center>

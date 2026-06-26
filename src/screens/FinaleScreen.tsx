@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Button from '../components/Button';
+import Podium from '../components/Podium';
 import Screen from '../components/Screen';
 import { useGame } from '../game/GameContext';
 import { useExit } from '../components/ExitContext';
@@ -12,35 +13,52 @@ import { colors, font, radius, spacing } from '../theme';
 export default function FinaleScreen() {
   const { state, dispatch, playerById } = useGame();
   const exit = useExit();
-  const winner = playerById(state.result?.winnerId);
-  const loser = playerById(state.result?.loserId);
+  const result = state.result;
+  const winners = (result?.winnerIds ?? []).map((id) => playerById(id)).filter(Boolean);
+  const losers = (result?.loserIds ?? []).map((id) => playerById(id)).filter(Boolean);
+  const winnerNames = winners.map((w) => w!.name).join(', ');
+  const loserNames = losers.map((l) => l!.name).join(', ');
+  const multiLosers = losers.length > 1;
 
   return (
     <Screen scroll>
+      <Text style={styles.kicker}>🏁 RÉSULTATS</Text>
       <Text style={styles.title}>FIN DE PARTIE</Text>
-      {state.result?.tie ? <Text style={styles.tie}>Égalité parfaite... le sort a tranché</Text> : null}
+      {winners.length > 1 ? <Text style={styles.exaequo}>Gagnants ex aequo : {winnerNames}</Text> : null}
 
-      <View style={[styles.podium, { borderColor: colors.gold }]}>
-        <Text style={styles.podiumLabel}>GAGNANT·E</Text>
-        <Text style={[styles.podiumName, { color: colors.gold }]}>{winner?.name}</Text>
-        <Text style={styles.podiumMalus}>{winner?.malus} malus - le moins puni</Text>
-      </View>
+      <View style={{ height: spacing.xl }} />
+      <Podium players={state.players} />
 
-      <View style={[styles.podium, { borderColor: colors.danger }]}>
-        <Text style={styles.podiumLabel}>PERDANT·E</Text>
-        <Text style={[styles.podiumName, { color: colors.danger }]}>{loser?.name}</Text>
-        <Text style={styles.podiumMalus}>{loser?.malus} malus - la sentence</Text>
-      </View>
+      {result?.tie ? (
+        <View style={styles.sentence}>
+          <Text style={styles.sentenceLead}>Égalité parfaite — personne ne perd ce soir !</Text>
+          <Text style={styles.sentenceSub}>Tout le monde s'en sort avec le même score. Revanche ?</Text>
+        </View>
+      ) : (
+        <>
+          <View style={[styles.loserCard, { borderColor: colors.danger }]}>
+            <Text style={styles.loserLabel}>{multiLosers ? 'LA SENTENCE POUR (EX AEQUO)' : 'LA SENTENCE POUR'}</Text>
+            <Text style={[styles.loserName, { color: colors.danger }]}>{loserNames}</Text>
+          </View>
 
-      <View style={styles.sentence}>
-        <Text style={styles.sentenceLead}>
-          <Text style={{ color: colors.danger, fontWeight: font.black }}>{loser?.name}</Text>, donne ton téléphone à{' '}
-          <Text style={{ color: colors.gold, fontWeight: font.black }}>{winner?.name}</Text>
-        </Text>
-        <Text style={styles.sentenceSub}>
-          pour qu'il publie ce qu'il veut sur le réseau social de son choix.
-        </Text>
-      </View>
+          <View style={styles.sentence}>
+            <Text style={styles.sentenceLead}>
+              {multiLosers ? (
+                <>
+                  <Text style={{ color: colors.danger, fontWeight: font.black }}>{loserNames}</Text>, donnez vos téléphones aux
+                  gagnants
+                </>
+              ) : (
+                <>
+                  <Text style={{ color: colors.danger, fontWeight: font.black }}>{loserNames}</Text>, donne ton téléphone à{' '}
+                  <Text style={{ color: colors.gold, fontWeight: font.black }}>{winnerNames}</Text>
+                </>
+              )}
+            </Text>
+            <Text style={styles.sentenceSub}>pour qu'ils publient ce qu'ils veulent sur le réseau social de leur choix.</Text>
+          </View>
+        </>
+      )}
 
       <View style={{ height: spacing.xl }} />
       <Button label="Rejouer (mêmes joueurs)" variant="primary" onPress={() => dispatch({ type: 'PLAY_AGAIN' })} />
@@ -51,13 +69,13 @@ export default function FinaleScreen() {
 }
 
 const styles = StyleSheet.create({
-  title: { color: colors.text, fontSize: 34, fontWeight: font.black, textAlign: 'center', letterSpacing: 1 },
-  tie: { color: colors.textMuted, textAlign: 'center', marginTop: spacing.xs, fontStyle: 'italic' },
-  podium: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 2, padding: spacing.lg, marginTop: spacing.lg },
-  podiumLabel: { color: colors.textMuted, fontWeight: font.bold, letterSpacing: 2, fontSize: 11 },
-  podiumName: { fontSize: 30, fontWeight: font.black },
-  podiumMalus: { color: colors.textFaint, fontSize: 13, marginTop: 2 },
-  sentence: { marginTop: spacing.xxl, alignItems: 'center' },
+  kicker: { color: colors.gold, fontWeight: font.black, letterSpacing: 3, fontSize: 13, textAlign: 'center' },
+  title: { color: colors.text, fontSize: 34, fontWeight: font.black, textAlign: 'center', letterSpacing: 1, marginTop: spacing.xs },
+  exaequo: { color: colors.gold, textAlign: 'center', marginTop: spacing.xs, fontWeight: font.semibold },
+  loserCard: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 2, padding: spacing.lg, marginTop: spacing.xxl, alignItems: 'center' },
+  loserLabel: { color: colors.textMuted, fontWeight: font.bold, letterSpacing: 2, fontSize: 11 },
+  loserName: { fontSize: 28, fontWeight: font.black, marginTop: 2, textAlign: 'center' },
+  sentence: { marginTop: spacing.xl, alignItems: 'center' },
   sentenceLead: { color: colors.text, fontSize: 20, fontWeight: font.semibold, textAlign: 'center', lineHeight: 28 },
   sentenceSub: { color: colors.textMuted, fontSize: 15, textAlign: 'center', marginTop: spacing.sm, lineHeight: 21 },
 });

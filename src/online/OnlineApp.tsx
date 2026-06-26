@@ -11,7 +11,9 @@ import { colors, font, spacing } from '../theme';
 
 const ERR: Record<string, string> = {
   'not-found': 'Partie introuvable. Vérifie le code.',
-  full: 'Cette partie est pleine.',
+  full: 'Cette partie est pleine (12 joueurs max).',
+  'name-taken': 'Ce pseudo est déjà pris dans cette partie.',
+  'rate-limited': 'Trop de tentatives. Réessaie dans un instant.',
 };
 
 function OnlineRouter() {

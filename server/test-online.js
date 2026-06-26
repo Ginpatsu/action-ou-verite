@@ -20,7 +20,7 @@ host.on('connect', () => {
           { id: 'H1', name: 'Alice', malus: 0, isChef: true },
           { id, name, malus: 3, isChef: false },
         ],
-        result: { winnerId: 'H1', loserId: id, tie: false },
+        result: { winnerIds: ['H1'], loserIds: [id], tie: false },
       });
       console.log('finale envoyee -> doit etre enregistree en base');
       setTimeout(() => process.exit(0), 900);

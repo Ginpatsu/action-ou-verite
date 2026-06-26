@@ -1,8 +1,9 @@
 import type { DareType, GameState, Player } from '../types';
-import { computeResult, pickTarget, pickWriter } from './logic';
+import { computeResult, pickTargetWeighted, pickWriter, pushRecent } from './logic';
 
 
 export const MIN_PLAYERS_ONLINE = 2;
+export const MAX_PLAYERS_ONLINE = 12;
 export const MAX_MANCHES = 50;
 
 // Actions exchanged in online mode. The host is authoritative: it applies every
@@ -45,6 +46,9 @@ export function onlineReducer(state: GameState, action: OnlineAction): GameState
       if (state.phase !== 'lobby') return state;
       const name = action.name.trim();
       if (!name || state.players.some((p) => p.id === action.id)) return state;
+      if (state.players.length >= MAX_PLAYERS_ONLINE) return state; // 12 joueurs max
+      // Pseudo unique (insensible à la casse) — garde côté hôte.
+      if (state.players.some((p) => p.name.toLowerCase() === name.toLowerCase())) return state;
       return { ...state, players: [...state.players, { id: action.id, name, malus: 0, isChef: false }] };
     }
 
@@ -62,16 +66,18 @@ export function onlineReducer(state: GameState, action: OnlineAction): GameState
         currentManche: 1,
         turn: null,
         result: null,
+        recentTargets: [],
         phase: 'turnIntro',
       };
     }
 
     case 'SPIN_TARGET': {
       if (state.phase !== 'turnIntro') return state;
-      const targetId = pickTarget(state.players);
+      const targetId = pickTargetWeighted(state.players, state.recentTargets);
       return {
         ...state,
         phase: 'playerRoulette',
+        recentTargets: pushRecent(state.recentTargets, targetId, state.players.length),
         turn: { manche: state.currentManche, targetId, type: null, writerId: null, dare: null, refused: null },
       };
     }
@@ -106,7 +112,17 @@ export function onlineReducer(state: GameState, action: OnlineAction): GameState
     case 'NEXT': {
       if (state.phase !== 'turnResult') return state;
       if (state.currentManche < state.totalManches) {
-        return { ...state, currentManche: state.currentManche + 1, turn: null, phase: 'turnIntro' };
+        // On enchaîne directement sur la roulette (plus d'écran intermédiaire).
+        const nextManche = state.currentManche + 1;
+        const recent = state.recentTargets ?? [];
+        const targetId = pickTargetWeighted(state.players, recent);
+        return {
+          ...state,
+          currentManche: nextManche,
+          recentTargets: pushRecent(recent, targetId, state.players.length),
+          turn: { manche: nextManche, targetId, type: null, writerId: null, dare: null, refused: null },
+          phase: 'playerRoulette',
+        };
       }
       return { ...state, result: computeResult(state.players), phase: 'finale' };
     }
@@ -118,6 +134,7 @@ export function onlineReducer(state: GameState, action: OnlineAction): GameState
         currentManche: 1,
         turn: null,
         result: null,
+        recentTargets: [],
         phase: 'turnIntro',
       };
 

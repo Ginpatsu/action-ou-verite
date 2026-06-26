@@ -60,9 +60,14 @@ async function upsertAccount(id, pseudo) {
 async function recordGame(code, state) {
   if (!enabled() || !state || !state.result) return;
   const players = state.players || [];
-  const { winnerId, loserId } = state.result;
+  // Ex aequo possibles : on garde des tableaux d'ids gagnants/perdants.
+  const winnerIds = state.result.winnerIds || [];
+  const loserIds = state.result.loserIds || [];
   const gameId = `${code}-${Date.now()}`;
 
+  // La table `games` ne garde qu'un gagnant/perdant "représentatif" (le 1er).
+  const winnerId = winnerIds[0] || null;
+  const loserId = loserIds[0] || null;
   const winner = players.find((p) => p.id === winnerId);
   const loser = players.find((p) => p.id === loserId);
 
@@ -73,6 +78,9 @@ async function recordGame(code, state) {
   );
 
   for (const p of players) {
+    // Tous les ex aequo comptent comme gagnant / perdant dans les stats.
+    const won = winnerIds.includes(p.id) ? 1 : 0;
+    const lost = loserIds.includes(p.id) ? 1 : 0;
     await q(`insert into game_players (game_id, player_id, pseudo, malus) values ($1, $2, $3, $4)`, [gameId, p.id, p.name, p.malus]);
     await q(
       `insert into accounts (id, pseudo, last_seen_at, games_played, games_won, games_lost, total_malus)
@@ -84,7 +92,7 @@ async function recordGame(code, state) {
          games_won = accounts.games_won + $3,
          games_lost = accounts.games_lost + $4,
          total_malus = accounts.total_malus + $5`,
-      [p.id, p.name, p.id === winnerId ? 1 : 0, p.id === loserId ? 1 : 0, p.malus]
+      [p.id, p.name, won, lost, p.malus]
     );
   }
   console.log(`[db] partie ${gameId} enregistrée (${players.length} joueurs)`);

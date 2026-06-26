@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
-import { MAX_MANCHES, MIN_PLAYERS, useGame } from '../game/GameContext';
+import { MAX_MANCHES, MAX_PLAYERS, MIN_PLAYERS, useGame } from '../game/GameContext';
 import { useExit } from '../components/ExitContext';
 import { colors, font, radius, spacing } from '../theme';
 
@@ -12,12 +12,19 @@ export default function LobbyScreen() {
   const { state, dispatch } = useGame();
   const exit = useExit();
   const [name, setName] = useState('');
+  const [error, setError] = useState('');
   const canStart = state.players.length >= MIN_PLAYERS;
+  const full = state.players.length >= MAX_PLAYERS;
+  const duplicate = state.players.some((p) => p.name.trim().toLowerCase() === name.trim().toLowerCase());
 
   const add = () => {
-    if (!name.trim()) return;
-    dispatch({ type: 'ADD_PLAYER', name });
+    const n = name.trim();
+    if (!n) return;
+    if (full) return setError(`${MAX_PLAYERS} joueurs maximum.`);
+    if (duplicate) return setError('Ce pseudo est déjà pris.');
+    dispatch({ type: 'ADD_PLAYER', name: n });
     setName('');
+    setError('');
   };
 
   return (
@@ -29,21 +36,29 @@ export default function LobbyScreen() {
       </View>
 
       <Text style={styles.h1}>Les joueurs</Text>
+      <Text style={styles.count}>
+        {state.players.length}/{MAX_PLAYERS}
+      </Text>
 
       <View style={styles.addRow}>
         <TextInput
           value={name}
-          onChangeText={setName}
-          placeholder="Prénom ou pseudo"
+          onChangeText={(t) => {
+            setName(t);
+            if (error) setError('');
+          }}
+          placeholder={full ? 'Complet (12 max)' : 'Prénom ou pseudo'}
           placeholderTextColor={colors.textFaint}
           style={styles.input}
           returnKeyType="done"
           onSubmitEditing={add}
           maxLength={18}
           autoCapitalize="words"
+          editable={!full}
         />
-        <Button label="+" onPress={add} size="md" style={styles.addBtn} disabled={!name.trim()} />
+        <Button label="+" onPress={add} size="md" style={styles.addBtn} disabled={!name.trim() || full || duplicate} />
       </View>
+      {error ? <Text style={styles.error}>{error}</Text> : null}
 
       <View style={styles.list}>
         {state.players.length === 0 ? (
@@ -51,7 +66,7 @@ export default function LobbyScreen() {
         ) : (
           state.players.map((p, i) => (
             <View key={p.id} style={styles.playerRow}>
-              <Text style={styles.playerIndex}>{i + 1}</Text>
+              <Text style={styles.playerIndex} numberOfLines={1}>{i + 1}</Text>
               <Text style={styles.playerName} numberOfLines={1}>
                 {p.name}
                 {p.isChef ? ' (chef)' : ''}
@@ -97,6 +112,8 @@ const styles = StyleSheet.create({
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.lg },
   back: { color: colors.textMuted, fontSize: 16, fontWeight: font.semibold },
   h1: { color: colors.text, fontSize: 30, fontWeight: font.black },
+  count: { color: colors.textMuted, fontWeight: font.bold, fontSize: 14, marginTop: 2, marginBottom: spacing.md },
+  error: { color: colors.danger, fontSize: 13, fontWeight: font.semibold, marginTop: spacing.xs },
   h2: { color: colors.text, fontSize: 20, fontWeight: font.bold, marginTop: spacing.xl, marginBottom: spacing.sm },
   help: { color: colors.textMuted, fontSize: 13, lineHeight: 19, marginTop: spacing.xs, marginBottom: spacing.lg },
 
@@ -126,7 +143,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     gap: spacing.md,
   },
-  playerIndex: { color: colors.textFaint, fontWeight: font.bold, width: 18 },
+  playerIndex: { color: colors.textFaint, fontWeight: font.bold, minWidth: 26, textAlign: 'center' },
   playerName: { flex: 1, color: colors.text, fontSize: 18, fontWeight: font.bold },
   kick: { color: colors.danger, fontSize: 18, fontWeight: font.black, paddingHorizontal: 6 },
 

@@ -28,6 +28,11 @@ type OnlineValue = {
 
 const Ctx = createContext<OnlineValue | null>(null);
 
+// Délai avant de retirer pour de bon un joueur déconnecté (veille / app en
+// arrière-plan). En deçà, on le garde dans la partie : s'il revient, il reprend
+// sa place. Au-delà, on considère qu'il a abandonné.
+const REMOVE_AFTER_MS = 10 * 60 * 1000; // 10 minutes
+
 export function OnlineProvider({ onExit, children }: { onExit: () => void; children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [state, setState] = useState<GameState | null>(null);
@@ -41,6 +46,8 @@ export function OnlineProvider({ onExit, children }: { onExit: () => void; child
   const isHostRef = useRef(false);
   const accountIdRef = useRef<string | null>(null);
   const connectParamsRef = useRef<ConnectParams | null>(null);
+  // Retraits différés en attente, par id de joueur (hôte uniquement).
+  const removalTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   // Identifiant de compte persistant.
   useEffect(() => {
@@ -74,6 +81,29 @@ export function OnlineProvider({ onExit, children }: { onExit: () => void; child
     setAuthoritative(onlineReducer(stateRef.current, action));
   }, []);
 
+  // Annule un retrait programmé (le joueur est revenu à temps).
+  const cancelRemoval = useCallback((id: string) => {
+    const t = removalTimers.current.get(id);
+    if (t) {
+      clearTimeout(t);
+      removalTimers.current.delete(id);
+    }
+  }, []);
+
+  // Programme le retrait d'un joueur après le délai d'inactivité, plutôt que de
+  // le virer dès la déconnexion (veille/arrière-plan coupent le socket).
+  const scheduleRemoval = useCallback(
+    (id: string) => {
+      cancelRemoval(id);
+      const t = setTimeout(() => {
+        removalTimers.current.delete(id);
+        hostApply({ type: 'REMOVE_PLAYER', id });
+      }, REMOVE_AFTER_MS);
+      removalTimers.current.set(id, t);
+    },
+    [cancelRemoval, hostApply]
+  );
+
   // (Ré)ouvre la connexion Socket.io pour ces paramètres et câble les handlers.
   const openChannel = useCallback(
     (p: ConnectParams) => {
@@ -95,12 +125,15 @@ export function OnlineProvider({ onExit, children }: { onExit: () => void; child
         },
         onHello: p.isHost
           ? (id, n) => {
+              cancelRemoval(id); // de retour à temps : on annule un retrait en attente
               hostApply({ type: 'ADD_PLAYER', id, name: n });
               if (stateRef.current) roomRef.current?.broadcastState(stateRef.current);
             }
           : undefined,
         onAction: p.isHost ? (_id, action) => hostApply(action) : undefined,
-        onLeave: p.isHost ? (id) => hostApply({ type: 'REMOVE_PLAYER', id }) : undefined,
+        // Déconnexion (veille / app fermée) : on diffère le retrait. S'il revient
+        // avant l'échéance, onHello annule ; sinon il est retiré au bout de 10 min.
+        onLeave: p.isHost ? (id) => scheduleRemoval(id) : undefined,
         onState: !p.isHost
           ? (s) => {
               stateRef.current = s;
@@ -109,7 +142,7 @@ export function OnlineProvider({ onExit, children }: { onExit: () => void; child
           : undefined,
       });
     },
-    [hostApply]
+    [hostApply, cancelRemoval, scheduleRemoval]
   );
 
   const createRoom = useCallback(
@@ -156,6 +189,8 @@ export function OnlineProvider({ onExit, children }: { onExit: () => void; child
   );
 
   const leave = useCallback(() => {
+    removalTimers.current.forEach(clearTimeout);
+    removalTimers.current.clear();
     roomRef.current?.leave();
     roomRef.current = null;
     stateRef.current = null;
@@ -171,18 +206,27 @@ export function OnlineProvider({ onExit, children }: { onExit: () => void; child
   const phase = state?.phase;
   useEffect(() => {
     if (!isHostRef.current) return;
+    // Laisse le temps de l'animation (~3,2 s) + un battement pour savourer le
+    // résultat avant d'enchaîner.
     if (phase === 'playerRoulette') {
-      const t = setTimeout(() => hostApply({ type: 'TARGET_DONE' }), 3800);
+      const t = setTimeout(() => hostApply({ type: 'TARGET_DONE' }), 4400);
       return () => clearTimeout(t);
     }
     if (phase === 'writerRoulette') {
-      const t = setTimeout(() => hostApply({ type: 'WRITER_DONE' }), 3800);
+      const t = setTimeout(() => hostApply({ type: 'WRITER_DONE' }), 4400);
       return () => clearTimeout(t);
     }
   }, [phase, hostApply]);
 
   // Ferme la connexion si le provider est démonté.
-  useEffect(() => () => roomRef.current?.leave(), []);
+  useEffect(
+    () => () => {
+      removalTimers.current.forEach(clearTimeout);
+      removalTimers.current.clear();
+      roomRef.current?.leave();
+    },
+    []
+  );
 
   // Au retour dans l'app (foreground), on relance la connexion (socket souvent
   // coupé en arrière-plan). socket.io reconnecte aussi seul, ceci accélère.

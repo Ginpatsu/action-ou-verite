@@ -41,13 +41,15 @@
         "foregroundImage": "./assets/android-icon-foreground.png"
       },
       "predictiveBackGestureEnabled": false,
+      "softwareKeyboardLayoutMode": "resize",
       "package": "com.anonymous.actionouverite"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "./plugins/withAndroidSocialQueries"
+      "./plugins/withAndroidSocialQueries",
+      "expo-audio"
     ],
     "extra": {
       "eas": {

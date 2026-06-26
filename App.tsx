@@ -1,7 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ExitProvider } from './src/components/ExitContext';
+import { initSound } from './src/utils/sound';
 import { GameProvider, useGame } from './src/game/GameContext';
 import MenuScreen from './src/screens/MenuScreen';
 import OnlineApp from './src/online/OnlineApp';
@@ -69,6 +70,12 @@ function LocalApp({ onExit }: { onExit: () => void }) {
 
 export default function App() {
   const [mode, setMode] = useState<Mode>('menu');
+
+  // Précharge les effets sonores (et lit la préférence muet) au démarrage.
+  useEffect(() => {
+    initSound();
+  }, []);
+
   return (
     <SafeAreaProvider>
       <StatusBar style="light" />

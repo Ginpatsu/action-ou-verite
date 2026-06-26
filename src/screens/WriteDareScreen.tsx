@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Text, TextInput, View } from 'react-native';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
 import { useGame } from '../game/GameContext';
@@ -15,7 +15,7 @@ export default function WriteDareScreen() {
 
   return (
     <Screen scroll>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <>
         <Text style={styles.kicker}>À TOI D'ÉCRIRE !</Text>
         <Text style={styles.h1}>
           Écris une <Text style={{ color: accent }}>{typeLabel}</Text>
@@ -42,7 +42,7 @@ export default function WriteDareScreen() {
           onPress={() => dispatch({ type: 'SET_DARE', text })}
           disabled={!text.trim()}
         />
-      </KeyboardAvoidingView>
+      </>
     </Screen>
   );
 }

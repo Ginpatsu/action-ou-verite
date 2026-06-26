@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import AppLogo from '../../components/AppLogo';
 import Button from '../../components/Button';
 import Screen from '../../components/Screen';
@@ -15,6 +15,11 @@ export default function OnlineEntryScreen({ onBack }: { onBack: () => void }) {
   const [code, setCode] = useState('');
   const [editingServer, setEditingServer] = useState(false);
   const [serverInput, setServerInput] = useState('');
+  const scrollRef = useRef<ScrollView>(null);
+
+  // Au focus du code (champ en bas de page), on défile pour qu'il ne soit pas
+  // masqué par le clavier numérique.
+  const revealCodeField = () => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 150);
 
   useEffect(() => {
     getSavedPseudo().then((saved) => saved && setName(saved));
@@ -61,15 +66,14 @@ export default function OnlineEntryScreen({ onBack }: { onBack: () => void }) {
   }
 
   return (
-    <Screen scroll>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <Screen scroll scrollRef={scrollRef}>
+      <>
         <Pressable onPress={onBack} hitSlop={12}>
           <Text style={styles.back}>‹ Accueil</Text>
         </Pressable>
         <View style={styles.brand}>
           <AppLogo size={84} />
           <Text style={styles.title}>Partie en ligne</Text>
-          <Text style={styles.sub}>Plusieurs téléphones pour une même partie.</Text>
         </View>
 
 {/*         <Pressable onPress={() => setEditingServer(true)} style={styles.serverRow}>
@@ -109,6 +113,7 @@ export default function OnlineEntryScreen({ onBack }: { onBack: () => void }) {
           maxLength={4}
           keyboardType="number-pad"
           autoCorrect={false}
+          onFocus={revealCodeField}
         />
         <View style={{ height: spacing.lg }} />
         <Button
@@ -117,7 +122,12 @@ export default function OnlineEntryScreen({ onBack }: { onBack: () => void }) {
           disabled={!name.trim() || code.trim().length < 4}
           onPress={() => join(code, name)}
         />
-      </KeyboardAvoidingView>
+        <View style={styles.brand}>
+
+          <Text style={styles.sub}>Plusieurs téléphones pour une même partie.</Text>
+        </View>
+
+      </>
     </Screen>
   );
 }
