@@ -36,48 +36,54 @@ export default function OnlinePlayScreen() {
   switch (state.phase) {
     case 'playerRoulette':
       return (
-        <Screen center>
+        <Screen>
           {Header}
-          <Text style={styles.kicker}>LA ROULETTE TOURNE…</Text>
-          <View style={{ height: spacing.lg }} />
-          <Roulette key={`t${turn.manche}`} items={names} winnerIndex={idx(turn.targetId)} accent={colors.primary} />
+          <View style={styles.fill}>
+            <Text style={styles.kicker}>LA ROULETTE TOURNE…</Text>
+            <View style={{ height: spacing.lg }} />
+            <Roulette key={`t${turn.manche}`} items={names} winnerIndex={idx(turn.targetId)} accent={colors.primary} />
+          </View>
         </Screen>
       );
 
     case 'chooseType':
       return (
-        <Screen center>
+        <Screen>
           {Header}
-          {amTarget ? (
-            <>
-              <Text style={styles.kicker}>C'EST TOI !</Text>
-              <View style={styles.choices}>
-                <Pressable style={[styles.card, { backgroundColor: colors.primary }]} onPress={() => act({ type: 'CHOOSE_TYPE', dareType: 'action' })}>
-                  <Text style={styles.cardLabel}>ACTION</Text>
-                </Pressable>
-                <Pressable style={[styles.card, { backgroundColor: colors.accent }]} onPress={() => act({ type: 'CHOOSE_TYPE', dareType: 'verite' })}>
-                  <Text style={styles.cardLabel}>VÉRITÉ</Text>
-                </Pressable>
-              </View>
-            </>
-          ) : (
-            <Waiting emoji="" title={`${target?.name} est désigné·e`} sub="Action ou Vérité ? On attend son choix…" />
-          )}
+          <View style={styles.fill}>
+            {amTarget ? (
+              <>
+                <Text style={styles.kicker}>C'EST TOI !</Text>
+                <View style={styles.choices}>
+                  <Pressable style={[styles.card, { backgroundColor: colors.primary }]} onPress={() => act({ type: 'CHOOSE_TYPE', dareType: 'action' })}>
+                    <Text style={styles.cardLabel}>ACTION</Text>
+                  </Pressable>
+                  <Pressable style={[styles.card, { backgroundColor: colors.accent }]} onPress={() => act({ type: 'CHOOSE_TYPE', dareType: 'verite' })}>
+                    <Text style={styles.cardLabel}>VÉRITÉ</Text>
+                  </Pressable>
+                </View>
+              </>
+            ) : (
+              <Waiting emoji="" title={`${target?.name} est désigné·e`} sub="Action ou Vérité ? On attend son choix…" />
+            )}
+          </View>
         </Screen>
       );
 
     case 'writerRoulette':
       return (
-        <Screen center>
+        <Screen>
           {Header}
-          <Text style={[styles.kicker, { color: colors.accent }]}>QUI ÉCRIT L'ÉPREUVE ?</Text>
-          <View style={{ height: spacing.lg }} />
-          <Roulette
-            key={`w${turn.manche}`}
-            items={writerPool.map((p) => p.name)}
-            winnerIndex={Math.max(0, writerPool.findIndex((p) => p.id === turn.writerId))}
-            accent={colors.accent}
-          />
+          <View style={styles.fill}>
+            <Text style={[styles.kicker, { color: colors.accent }]}>QUI ÉCRIT L'ÉPREUVE ?</Text>
+            <View style={{ height: spacing.lg }} />
+            <Roulette
+              key={`w${turn.manche}`}
+              items={writerPool.map((p) => p.name)}
+              winnerIndex={Math.max(0, writerPool.findIndex((p) => p.id === turn.writerId))}
+              accent={colors.accent}
+            />
+          </View>
         </Screen>
       );
 
@@ -85,16 +91,19 @@ export default function OnlinePlayScreen() {
       return amWriter ? (
         <WriteDareView targetName={target?.name ?? ''} isAction={isAction} onSubmit={(text) => act({ type: 'SET_DARE', text })} header={Header} />
       ) : (
-        <Screen center>
+        <Screen>
           {Header}
-          <Waiting emoji="" title={`${writer?.name} écrit`} sub={`Une ${isAction ? 'action' : 'vérité'} pour ${target?.name}…`} />
+          <View style={styles.fill}>
+            <Waiting emoji="" title={`${writer?.name} écrit`} sub={`Une ${isAction ? 'action' : 'vérité'} pour ${target?.name}…`} />
+          </View>
         </Screen>
       );
 
     case 'reveal':
       return (
-        <Screen scroll center>
+        <Screen scroll>
           {Header}
+          <View style={{ height: spacing.xl }} />
           <Text style={styles.kicker}>POUR</Text>
           <Text style={styles.bigName}>{target?.name}</Text>
           <View style={[styles.chip, { backgroundColor: accent }]}>
@@ -225,6 +234,7 @@ const styles = StyleSheet.create({
   kicker: { color: colors.textMuted, fontWeight: font.bold, letterSpacing: 3, textAlign: 'center' },
   rankTitle: { color: colors.textMuted, fontWeight: font.bold, letterSpacing: 2, fontSize: 12, marginBottom: spacing.md, textAlign: 'center' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  fill: { flex: 1, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },
   intro: { alignItems: 'center', justifyContent: 'center', paddingVertical: spacing.xxl },
   emoji: { fontSize: 56, textAlign: 'center' },
   h1: { color: colors.text, fontSize: 32, fontWeight: font.black, textAlign: 'center', marginTop: spacing.xs },

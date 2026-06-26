@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Keyboard, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import AppLogo from '../../components/AppLogo';
 import Button from '../../components/Button';
 import Screen from '../../components/Screen';
@@ -16,13 +16,20 @@ export default function OnlineEntryScreen({ onBack }: { onBack: () => void }) {
   const [editingServer, setEditingServer] = useState(false);
   const [serverInput, setServerInput] = useState('');
   const scrollRef = useRef<ScrollView>(null);
-
-  // Au focus du code (champ en bas de page), on défile pour qu'il ne soit pas
-  // masqué par le clavier numérique.
-  const revealCodeField = () => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 150);
+  const codeFocused = useRef(false);
 
   useEffect(() => {
     getSavedPseudo().then((saved) => saved && setName(saved));
+  }, []);
+
+  // Quand le clavier s'ouvre alors que le champ "code" est actif, on défile en
+  // bas pour le faire remonter au-dessus du clavier (sinon il reste caché). On
+  // attend le keyboardDidShow pour que la fenêtre soit déjà redimensionnée.
+  useEffect(() => {
+    const sub = Keyboard.addListener('keyboardDidShow', () => {
+      if (codeFocused.current) scrollRef.current?.scrollToEnd({ animated: true });
+    });
+    return () => sub.remove();
   }, []);
 
   // Pré-remplit le champ avec l'adresse connue quand on ouvre l'éditeur serveur.
@@ -113,7 +120,13 @@ export default function OnlineEntryScreen({ onBack }: { onBack: () => void }) {
           maxLength={4}
           keyboardType="number-pad"
           autoCorrect={false}
-          onFocus={revealCodeField}
+          onFocus={() => {
+            codeFocused.current = true;
+            setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 250);
+          }}
+          onBlur={() => {
+            codeFocused.current = false;
+          }}
         />
         <View style={{ height: spacing.lg }} />
         <Button
