@@ -19,6 +19,7 @@ export default function OnlineEntryScreen({ onBack }: { onBack: () => void }) {
   const scrollRef = useRef<ScrollView>(null);
   const codeFocused = useRef(false);
   const codeY = useRef(0); // position verticale du champ code dans la page
+  const [codeActive, setCodeActive] = useState(false);
 
   // Fait remonter le champ code juste sous le haut de la zone visible, donc
   // au-dessus du clavier (peu importe la hauteur du clavier).
@@ -132,10 +133,12 @@ export default function OnlineEntryScreen({ onBack }: { onBack: () => void }) {
           }}
           onFocus={() => {
             codeFocused.current = true;
+            setCodeActive(true);
             setTimeout(scrollToCode, 250);
           }}
           onBlur={() => {
             codeFocused.current = false;
+            setCodeActive(false);
           }}
         />
         <View style={{ height: spacing.lg }} />
@@ -150,7 +153,10 @@ export default function OnlineEntryScreen({ onBack }: { onBack: () => void }) {
           <Text style={styles.sub}>Plusieurs téléphones pour une même partie.</Text>
         </View>
 
+        {codeActive && <View style={{ height: 200 }} />}
       </>
+
+      <View style={{ height: spacing.xl }} />
     </Screen>
   );
 }
